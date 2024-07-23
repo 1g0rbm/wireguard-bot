@@ -1,0 +1,4 @@
+github.com/go-telegram/bot v1.6.0 h1:SNjpC3W6DiWTuv/vbWMJ8FoZD5F6Fh+M4K5wYwO8BAo=
+github.com/go-telegram/bot v1.6.0/go.mod h1:i2TRs7fXWIeaceF3z7KzsMt/he0TwkVC680mvdTFYeM=
+golang.org/x/crypto v0.25.0 h1:ypSNr+bnYL2YhwoMt2zPxHFmbAN1KZs/njMG3hxUp30=
+golang.org/x/crypto v0.25.0/go.mod h1:T+wALwcMOSE0kXgUAnPAHqTLW+XHgcELELW8VaDgm/M=
