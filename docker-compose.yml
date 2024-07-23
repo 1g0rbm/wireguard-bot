@@ -4,13 +4,24 @@ services:
   db:
     image: postgres:16.3
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      - "POSTGRES_DB=${PG_DATABASE_NAME}"
+      - "POSTGRES_USER=${PG_USER}"
+      - "POSTGRES_PASSWORD=${PG_PASSWORD}"
     ports:
-      - "54321:5432"
+      - "${PG_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  migrator:
+    build:
+      context: ./docker/migrations
+    restart: on-failure
+    environment:
+      - "PG_DATABASE_NAME=${PG_DATABASE_NAME}"
+      - "PG_USER=${PG_USER}"
+      - "PG_PASSWORD=${PG_PASSWORD}"
+      - "MIGRATION_DIR=${MIGRATION_DIR}"
+    volumes:
+      - ./${MIGRATION_DIR}:/root/migrations
 volumes:
   postgres_data:
