@@ -14,7 +14,6 @@ stop-dev: \
 install-deps:
 	GOBIN=$(LOCAL_BIN) go install github.com/gojuno/minimock/v3/cmd/minimock@latest
 	GOBIN=$(LOCAL_BIN) go install github.com/joho/godotenv/cmd/godotenv@latest
-	GOBIN=$(LOCAL_BIN) go install github.com/swaggo/swag/cmd/swag@latest
 	GOBIN=$(LOCAL_BIN) go install github.com/pressly/goose/v3/cmd/goose@v3.14.0
 
 update-modules:
