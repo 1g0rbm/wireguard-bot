@@ -3,12 +3,13 @@ package h_start
 import (
 	"context"
 	"fmt"
-	"wireguard-api/internal/repository/user"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 
 	"wireguard-api/internal/repository"
+	"wireguard-api/internal/repository/user"
+	"wireguard-api/internal/utils"
 )
 
 const command = "/start"
@@ -28,31 +29,71 @@ func (h *Handler) Match(update *models.Update) bool {
 }
 
 func (h *Handler) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
-	userModel := &user.Model{
+
+	userModel, err := h.userRepo.GetUserById(ctx, update.Message.Chat.ID)
+	if err != nil {
+		fmt.Println(err)
+		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   "Что-то пошло не так. \n Попробуй позже.",
+		})
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
+	}
+
+	if userModel != nil {
+		_, err = b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   fmt.Sprintf("Привет, %s!\n У тебя уже есть конфигурация.", userModel.Username),
+		})
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
+	}
+
+	privateKey, publicKey, err := utils.GenerateKeyPair()
+	if err != nil {
+		fmt.Println(err)
+		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   "Ну удалось сгенерировать конфигурацию. \n Попробуй позже.",
+		})
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
+	}
+
+	userModel = &user.Model{
 		Id:         update.Message.Chat.ID,
 		Username:   update.Message.Chat.Username,
 		FirstName:  update.Message.Chat.FirstName,
 		LastName:   update.Message.Chat.LastName,
 		Role:       1,
-		PrivateKey: "test_private_key",
-		PublicKey:  "test_public_key",
+		PrivateKey: privateKey,
+		PublicKey:  publicKey,
 	}
 
-	var text string
-
-	err := h.userRepo.CreateUser(ctx, userModel)
-	fmt.Println(err)
-	if err != nil {
-		text = "error!"
+	if err := h.userRepo.CreateUser(ctx, userModel); err != nil {
 		fmt.Println(err)
-	} else {
-		text = "hi"
+		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   "Ну удалось сгенерировать конфигурацию. \n Попробуйте позже.",
+		})
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
 	}
 
 	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
-		Text:   text,
+		Text:   fmt.Sprintf("Привет, %s!\n Твоя конфигурация успешно сгенерирована!", userModel.Username),
 	})
-
-	fmt.Printf("sending message error: %v\n", err)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

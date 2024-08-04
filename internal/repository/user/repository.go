@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/Masterminds/squirrel"
@@ -34,11 +36,43 @@ func NewRepository(db db.Client) *Repository {
 }
 
 func (r *Repository) GetUserById(ctx context.Context, id int64) (*Model, error) {
-	return nil, nil
+	q, args, err := squirrel.Select(
+		colPk,
+		colUsername,
+		colFirstname,
+		colLastname,
+		colRole,
+		colPublicKey,
+		colPrivateKey,
+		colCreatedAt,
+		colUpdatedAt,
+	).
+		PlaceholderFormat(squirrel.Dollar).
+		From(table).
+		Where(squirrel.Eq{colPk: id}).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("user_repository.get_user_by_id: %w", err)
+	}
+
+	query := db.Query{
+		Name:     "user_repository.Get",
+		QueryRaw: q,
+	}
+
+	var model Model
+	if err = r.db.DB().GetContext(ctx, &model, query, args...); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("user_repository.get_user_by_id: %w", err)
+	}
+
+	return &model, nil
 }
 
 func (r *Repository) CreateUser(ctx context.Context, user *Model) error {
-	sql, args, err := squirrel.Insert(table).
+	q, args, err := squirrel.Insert(table).
 		PlaceholderFormat(squirrel.Dollar).
 		Columns(
 			colPk,
@@ -66,7 +100,7 @@ func (r *Repository) CreateUser(ctx context.Context, user *Model) error {
 
 	query := db.Query{
 		Name:     "user_repository.create_user",
-		QueryRaw: sql,
+		QueryRaw: q,
 	}
 
 	_, err = r.db.DB().QueryContext(ctx, query, args...)
