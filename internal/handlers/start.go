@@ -1,4 +1,4 @@
-package h_start
+package handlers
 
 import (
 	"context"
@@ -12,23 +12,32 @@ import (
 	"wireguard-api/internal/utils"
 )
 
-const command = "/start"
+const startCommand = "/start"
 
-type Handler struct {
+type StartHandler struct {
 	userRepo repository.UserRepository
 }
 
-func NewHandler(userRepo repository.UserRepository) *Handler {
-	return &Handler{
+func NewStartHandler(userRepo repository.UserRepository) *StartHandler {
+	return &StartHandler{
 		userRepo: userRepo,
 	}
 }
 
-func (h *Handler) Match(update *models.Update) bool {
-	return update.Message.Text == command
+func (h *StartHandler) Match(update *models.Update) bool {
+	return update.Message.Text == startCommand
 }
 
-func (h *Handler) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
+func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
+
+	keyboard := &models.ReplyKeyboardMarkup{
+		Keyboard: [][]models.KeyboardButton{
+			{{Text: configCommand}},
+			{{Text: "QR-код \uE1D8"}},
+		},
+		ResizeKeyboard:  true,
+		OneTimeKeyboard: false,
+	}
 
 	userModel, err := h.userRepo.GetUserById(ctx, update.Message.Chat.ID)
 	if err != nil {
@@ -45,8 +54,9 @@ func (h *Handler) Handle(ctx context.Context, b *bot.Bot, update *models.Update)
 
 	if userModel != nil {
 		_, err = b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   fmt.Sprintf("Привет, %s!\n У тебя уже есть конфигурация.", userModel.Username),
+			ChatID:      update.Message.Chat.ID,
+			Text:        fmt.Sprintf("Привет, %s!\n У тебя уже есть конфигурация.", userModel.Username),
+			ReplyMarkup: keyboard,
 		})
 		if err != nil {
 			fmt.Println(err)
@@ -90,8 +100,9 @@ func (h *Handler) Handle(ctx context.Context, b *bot.Bot, update *models.Update)
 	}
 
 	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   fmt.Sprintf("Привет, %s!\n Твоя конфигурация успешно сгенерирована!", userModel.Username),
+		ChatID:      update.Message.Chat.ID,
+		Text:        fmt.Sprintf("Привет, %s!\n Твоя конфигурация успешно сгенерирована!", userModel.Username),
+		ReplyMarkup: keyboard,
 	})
 	if err != nil {
 		fmt.Println(err)

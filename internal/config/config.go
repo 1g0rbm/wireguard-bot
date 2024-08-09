@@ -7,3 +7,7 @@ type PGConfig interface {
 type BotConfig interface {
 	Token() string
 }
+
+type LoggerConfig interface {
+	LogFilepath() string
+}

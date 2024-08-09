@@ -1,0 +1,10 @@
+[Interface]
+PrivateKey = {{.UserPrivateKey}}
+Address = {{.UserAddress}}
+DNS = {{.DNS}}
+
+[Peer]
+PublicKey = {{.ServerPublicKey}}
+Endpoint = {{.ServerEndpoint}}
+AllowedIPs = {{.AllowedIPs}}
+PersistentKeepalive = {{.PersistentKeepalive}}

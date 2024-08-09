@@ -17,7 +17,7 @@ create table if not exists users (
 create table if not exists servers (
                                        id serial primary key,
                                        name varchar(255) not null,
-                                       ip varchar(15) not null,
+                                       address varchar(21) not null,
                                        public_key varchar(44) not null,
                                        private_key varchar(44) not null,
                                        created_at timestamp not null default now(),

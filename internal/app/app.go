@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+
 	"github.com/go-telegram/bot"
 )
 
@@ -28,4 +29,5 @@ func (a *App) Start(ctx context.Context) {
 
 func (a *App) initCommandHandlers() {
 	a.bot.RegisterHandlerMatchFunc(a.container.StartHandler().Match, a.container.StartHandler().Handle)
+	a.bot.RegisterHandlerMatchFunc(a.container.ConfigHandler().Match, a.container.ConfigHandler().Handle)
 }

@@ -2,6 +2,8 @@ package app
 
 import (
 	"log"
+	"log/slog"
+	"os"
 
 	"github.com/go-telegram/bot"
 
@@ -11,28 +13,60 @@ import (
 	"wireguard-api/internal/db"
 	"wireguard-api/internal/db/pg"
 	"wireguard-api/internal/db/tx"
-	"wireguard-api/internal/handlers/h_start"
+	"wireguard-api/internal/handlers"
 	"wireguard-api/internal/repository"
+	"wireguard-api/internal/repository/server"
 	"wireguard-api/internal/repository/user"
+	"wireguard-api/internal/services"
+	configService "wireguard-api/internal/services/config"
 )
 
 type Container struct {
 	closer *closer.Closer
+	logger *slog.Logger
 
-	botCfg config.BotConfig
-	pgCfg  config.PGConfig
+	botCfg    config.BotConfig
+	pgCfg     config.PGConfig
+	loggerCfg config.LoggerConfig
 
 	bot       *bot.Bot
 	db        db.Client
 	txManager db.TxManager
 
-	startHandler *h_start.Handler
+	startHandler   *handlers.StartHandler
+	defaultHandler *handlers.DefaultHandler
+	configHandler  *handlers.ConfigHandler
 
-	userRepo repository.UserRepository
+	userRepo   repository.UserRepository
+	serverRepo repository.ServerRepository
+
+	configService services.ConfigService
 }
 
 func newContainer() *Container {
 	return &Container{}
+}
+
+func (c *Container) Logger() *slog.Logger {
+	if c.logger != nil {
+		return c.logger
+	}
+
+	file, err := os.OpenFile(
+		c.LogCfg().LogFilepath(),
+		os.O_CREATE|os.O_APPEND|os.O_WRONLY,
+		0666,
+	)
+	if err != nil {
+		log.Fatalf("error opening log file: %v", err)
+	}
+	c.getCloser().Add(func() error {
+		return file.Close()
+	})
+
+	c.logger = slog.New(slog.NewJSONHandler(file, nil))
+
+	return c.logger
 }
 
 func (c *Container) TxManager() db.TxManager {
@@ -76,6 +110,30 @@ func (c *Container) UserRepo() repository.UserRepository {
 	return c.userRepo
 }
 
+func (c *Container) ServerRepo() repository.ServerRepository {
+	if c.serverRepo == nil {
+		c.serverRepo = server.NewRepository(c.DB())
+	}
+
+	return c.serverRepo
+}
+
+func (c *Container) ConfigService() services.ConfigService {
+	if c.configService == nil {
+		c.configService = configService.NewConfigService(c.UserRepo(), c.ServerRepo())
+	}
+
+	return c.configService
+}
+
+func (c *Container) LogCfg() config.LoggerConfig {
+	if c.loggerCfg == nil {
+		c.loggerCfg = env.NewLoggerConfig()
+	}
+
+	return c.loggerCfg
+}
+
 func (c *Container) BotCfg() config.BotConfig {
 	if c.botCfg != nil {
 		return c.botCfg
@@ -102,7 +160,7 @@ func (c *Container) Bot() *bot.Bot {
 	}
 
 	opts := []bot.Option{
-		bot.WithDefaultHandler(nil),
+		bot.WithDefaultHandler(c.DefaultHandler().Handle),
 	}
 
 	b, err := bot.New(c.BotCfg().Token(), opts...)
@@ -115,14 +173,26 @@ func (c *Container) Bot() *bot.Bot {
 	return c.bot
 }
 
-func (c *Container) StartHandler() *h_start.Handler {
+func (c *Container) StartHandler() *handlers.StartHandler {
 	if c.startHandler == nil {
-		c.startHandler = h_start.NewHandler(c.UserRepo())
+		c.startHandler = handlers.NewStartHandler(c.UserRepo())
 	}
 
 	return c.startHandler
 }
 
-func (c *Container) EnableStartHandler() {
-	c.Bot().RegisterHandlerMatchFunc(c.StartHandler().Match, c.StartHandler().Handle)
+func (c *Container) ConfigHandler() *handlers.ConfigHandler {
+	if c.configHandler == nil {
+		c.configHandler = handlers.NewConfigHandler(c.ConfigService(), c.Logger())
+	}
+
+	return c.configHandler
+}
+
+func (c *Container) DefaultHandler() *handlers.DefaultHandler {
+	if c.defaultHandler == nil {
+		c.defaultHandler = handlers.NewDefaultHandler()
+	}
+
+	return c.defaultHandler
 }
