@@ -30,4 +30,5 @@ func (a *App) Start(ctx context.Context) {
 func (a *App) initCommandHandlers() {
 	a.bot.RegisterHandlerMatchFunc(a.container.StartHandler().Match, a.container.StartHandler().Handle)
 	a.bot.RegisterHandlerMatchFunc(a.container.ConfigHandler().Match, a.container.ConfigHandler().Handle)
+	a.bot.RegisterHandlerMatchFunc(a.container.QRCodeHandler().Match, a.container.QRCodeHandler().Handle)
 }

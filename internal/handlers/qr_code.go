@@ -13,26 +13,26 @@ import (
 	"wireguard-api/internal/utils"
 )
 
-const configCommand = "Конфиг </>"
+const qrCodeCommand = "QR-код \uE1D8"
 
-type ConfigHandler struct {
+type QRCodeHandler struct {
 	configService services.ConfigService
 	logger        *slog.Logger
 }
 
-func NewConfigHandler(configService services.ConfigService, logger *slog.Logger) *ConfigHandler {
-	return &ConfigHandler{
+func NewQRCodeHandler(configService services.ConfigService, logger *slog.Logger) *QRCodeHandler {
+	return &QRCodeHandler{
 		configService: configService,
 		logger:        logger,
 	}
 }
 
-func (h *ConfigHandler) Match(update *models.Update) bool {
-	return update.Message.Text == configCommand
+func (h *QRCodeHandler) Match(update *models.Update) bool {
+	return update.Message.Text == qrCodeCommand
 }
 
-func (h *ConfigHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
-	cfgBytes, err := h.configService.GenerateConf(ctx, update.Message.Chat.ID)
+func (h *QRCodeHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
+	qrBytes, err := h.configService.GenerateQR(ctx, update.Message.Chat.ID)
 	if err != nil {
 		msgBytes, errRender := utils.Render("static/something_went_wrong.tmp", nil)
 		if errRender != nil {
@@ -47,7 +47,7 @@ func (h *ConfigHandler) Handle(ctx context.Context, b *bot.Bot, update *models.U
 		}
 	}
 
-	msgBytes, errRender := utils.Render("static/sending_conf.tmp", nil)
+	msgBytes, errRender := utils.Render("static/sending_qr.tmp", nil)
 	if errRender != nil {
 		h.logger.ErrorContext(ctx, "Render message error.", "error", errRender)
 	}
@@ -60,12 +60,12 @@ func (h *ConfigHandler) Handle(ctx context.Context, b *bot.Bot, update *models.U
 	}
 
 	document := &models.InputFileUpload{
-		Filename: update.Message.Chat.Username + ".conf",
-		Data:     bytes.NewReader(cfgBytes),
+		Filename: update.Message.Chat.Username + "_qr.png",
+		Data:     bytes.NewReader(qrBytes),
 	}
-	_, err = b.SendDocument(ctx, &bot.SendDocumentParams{
-		ChatID:   update.Message.Chat.ID,
-		Document: document,
+	_, err = b.SendPhoto(ctx, &bot.SendPhotoParams{
+		ChatID: update.Message.Chat.ID,
+		Photo:  document,
 	})
 	if err != nil {
 		log.Fatalf("Sending message error.\nerr: %v \n", err)

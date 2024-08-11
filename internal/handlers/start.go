@@ -33,7 +33,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 	keyboard := &models.ReplyKeyboardMarkup{
 		Keyboard: [][]models.KeyboardButton{
 			{{Text: configCommand}},
-			{{Text: "QR-код \uE1D8"}},
+			{{Text: qrCodeCommand}},
 		},
 		ResizeKeyboard:  true,
 		OneTimeKeyboard: false,

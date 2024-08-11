@@ -36,6 +36,7 @@ type Container struct {
 	startHandler   *handlers.StartHandler
 	defaultHandler *handlers.DefaultHandler
 	configHandler  *handlers.ConfigHandler
+	qrHandler      *handlers.QRCodeHandler
 
 	userRepo   repository.UserRepository
 	serverRepo repository.ServerRepository
@@ -187,6 +188,14 @@ func (c *Container) ConfigHandler() *handlers.ConfigHandler {
 	}
 
 	return c.configHandler
+}
+
+func (c *Container) QRCodeHandler() *handlers.QRCodeHandler {
+	if c.qrHandler == nil {
+		c.qrHandler = handlers.NewQRCodeHandler(c.ConfigService(), c.Logger())
+	}
+
+	return c.qrHandler
 }
 
 func (c *Container) DefaultHandler() *handlers.DefaultHandler {
