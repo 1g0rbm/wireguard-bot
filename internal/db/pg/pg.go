@@ -39,7 +39,7 @@ func (p *pg) GetContext(ctx context.Context, dest interface{}, q db.Query, args 
 }
 
 func (p *pg) ExecContext(ctx context.Context, q db.Query, args ...interface{}) (sql.Result, error) {
-	t, ok := ctx.Value(tx.TxKey).(sql.Tx)
+	t, ok := ctx.Value(tx.TxKey).(*sql.Tx)
 	if ok {
 		result, err := t.ExecContext(ctx, q.QueryRaw, args...)
 		if err != nil {
@@ -58,7 +58,7 @@ func (p *pg) ExecContext(ctx context.Context, q db.Query, args ...interface{}) (
 }
 
 func (p *pg) QueryContext(ctx context.Context, q db.Query, args ...interface{}) (*sql.Rows, error) {
-	t, ok := ctx.Value(tx.TxKey).(sql.Tx)
+	t, ok := ctx.Value(tx.TxKey).(*sql.Tx)
 	if ok {
 		rows, err := t.QueryContext(ctx, q.QueryRaw, args...)
 		if err != nil {
@@ -77,7 +77,7 @@ func (p *pg) QueryContext(ctx context.Context, q db.Query, args ...interface{}) 
 }
 
 func (p *pg) QueryRowContext(ctx context.Context, q db.Query, args ...interface{}) pgx.Row {
-	t, ok := ctx.Value(tx.TxKey).(sql.Tx)
+	t, ok := ctx.Value(tx.TxKey).(*sql.Tx)
 	if ok {
 		return t.QueryRowContext(ctx, q.QueryRaw, args...)
 	}
