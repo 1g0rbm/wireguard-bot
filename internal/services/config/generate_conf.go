@@ -1,4 +1,4 @@
-// Package config provides functionality for generating and managing vpn config for users
+// Package config provides functionality for generating and managing vpn config for users.
 package config
 
 import (
@@ -11,6 +11,10 @@ import (
 
 const defaultServerName = "astana_1"
 
+const (
+	keepAlive = 25
+)
+
 type vpnConfig struct {
 	UserPrivateKey      string
 	UserAddress         string
@@ -21,7 +25,7 @@ type vpnConfig struct {
 	PersistentKeepalive int
 }
 
-// GenerateConf method to generate vpn config for userId
+// GenerateConf method to generate vpn config for userId.
 func (s *ServiceConfig) GenerateConf(ctx context.Context, userID int64) ([]byte, error) {
 	userModel, err := s.userRepo.GetUserById(ctx, userID)
 	if err != nil {
@@ -43,7 +47,7 @@ func (s *ServiceConfig) GenerateConf(ctx context.Context, userID int64) ([]byte,
 		ServerPublicKey:     serverModel.PublicKey,
 		ServerEndpoint:      serverModel.Address,
 		AllowedIPs:          "0.0.0.0/0",
-		PersistentKeepalive: 25,
+		PersistentKeepalive: keepAlive,
 	}
 
 	configBytes, err := utils.Render("static/user_vpn_config.tmp", config)

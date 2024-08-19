@@ -23,6 +23,10 @@ import (
 	userService "wireguard-api/internal/services/user"
 )
 
+const (
+	logFilePerms = 0600
+)
+
 type Container struct {
 	closer *closer.Closer
 	logger *slog.Logger
@@ -60,7 +64,7 @@ func (c *Container) Logger() *slog.Logger {
 	file, err := os.OpenFile(
 		c.LogCfg().LogFilepath(),
 		os.O_CREATE|os.O_APPEND|os.O_WRONLY,
-		0600,
+		logFilePerms,
 	)
 	if err != nil {
 		log.Fatalf("error opening log file: %v", err)

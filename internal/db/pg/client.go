@@ -3,7 +3,7 @@ package pg
 import (
 	"wireguard-api/internal/db"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib" // enable db driver.
 	"github.com/jmoiron/sqlx"
 )
 
