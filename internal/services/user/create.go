@@ -9,12 +9,12 @@ import (
 	"wireguard-api/internal/utils"
 )
 
-const defaultServerId = 1
+const defaultServerID = 1
 
 func (u *ServiceUser) Create(
 	ctx context.Context,
-	serverId int,
-	userId int64,
+	serverID int,
+	userID int64,
 	username,
 	firstName,
 	lastname string,
@@ -24,13 +24,13 @@ func (u *ServiceUser) Create(
 		return fmt.Errorf("[user_service.create] %w", err)
 	}
 
-	if serverId == 0 {
-		serverId = defaultServerId
+	if serverID == 0 {
+		serverID = defaultServerID
 	}
 
 	err = u.txManager.ReadCommited(ctx, func(ctx context.Context) error {
 		userModel := &user.Model{
-			Id:         userId,
+			ID:         userID,
 			Username:   username,
 			FirstName:  firstName,
 			LastName:   lastname,
@@ -44,8 +44,8 @@ func (u *ServiceUser) Create(
 		}
 
 		users2serversModel := &users2servers.Users2Servers{
-			UserId:   userId,
-			ServerId: serverId,
+			UserID:   userID,
+			ServerID: serverID,
 			Address:  "10.0.0.2/24",
 		}
 

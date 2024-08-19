@@ -12,8 +12,8 @@ import (
 const table = "users2servers"
 
 const (
-	colUserId   = "user_id"
-	colServerId = "server_id"
+	colUserID   = "user_id"
+	colServerID = "server_id"
 	colAddress  = "address"
 )
 
@@ -31,13 +31,13 @@ func (r *Repository) CreateUsers2Servers(ctx context.Context, u2s *Users2Servers
 	q, args, err := squirrel.Insert(table).
 		PlaceholderFormat(squirrel.Dollar).
 		Columns(
-			colUserId,
-			colServerId,
+			colUserID,
+			colServerID,
 			colAddress,
 		).
 		Values(
-			u2s.UserId,
-			u2s.ServerId,
+			u2s.UserID,
+			u2s.ServerID,
 			u2s.Address,
 		).
 		ToSql()

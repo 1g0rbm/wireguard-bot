@@ -27,7 +27,7 @@ type vpnConfig struct {
 
 // GenerateConf method to generate vpn config for userId.
 func (s *ServiceConfig) GenerateConf(ctx context.Context, userID int64) ([]byte, error) {
-	userModel, err := s.userRepo.GetUserById(ctx, userID)
+	userModel, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("[config_service.generate] %w", err)
 	}

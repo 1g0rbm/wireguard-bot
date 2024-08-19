@@ -54,7 +54,6 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 				if err != nil {
 					return fmt.Errorf("handler_start.handle %w", err)
 				}
-
 				return nil
 			},
 		)
@@ -75,11 +74,9 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 					Text:        string(msg),
 					ReplyMarkup: keyboard,
 				})
-
 				if err != nil {
 					return fmt.Errorf("handler_start.handle %w", err)
 				}
-
 				return nil
 			},
 		)
@@ -104,11 +101,9 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 					ChatID: update.Message.Chat.ID,
 					Text:   string(msg),
 				})
-
 				if err != nil {
 					return fmt.Errorf("handler_start.handle %w", err)
 				}
-
 				return nil
 			},
 		)
@@ -128,11 +123,9 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 				Text:        string(msg),
 				ReplyMarkup: keyboard,
 			})
-
 			if err != nil {
 				return fmt.Errorf("handler_start.handle %w", err)
 			}
-
 			return nil
 		},
 	)

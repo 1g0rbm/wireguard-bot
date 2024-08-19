@@ -35,7 +35,7 @@ func NewRepository(db db.Client) *Repository {
 	}
 }
 
-func (r *Repository) GetUserById(ctx context.Context, id int64) (*Model, error) {
+func (r *Repository) GetUserByID(ctx context.Context, id int64) (*Model, error) {
 	q, args, err := squirrel.Select(
 		colPk,
 		colUsername,
@@ -63,6 +63,7 @@ func (r *Repository) GetUserById(ctx context.Context, id int64) (*Model, error) 
 	var model Model
 	if err = r.db.DB().GetContext(ctx, &model, query, args...); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			//nolint:nilnil
 			return nil, nil
 		}
 		return nil, fmt.Errorf("user_repository.get_user_by_id: %w", err)
@@ -84,7 +85,7 @@ func (r *Repository) CreateUser(ctx context.Context, user *Model) error {
 			colPrivateKey,
 		).
 		Values(
-			user.Id,
+			user.ID,
 			user.Username,
 			user.FirstName,
 			user.LastName,
@@ -103,7 +104,14 @@ func (r *Repository) CreateUser(ctx context.Context, user *Model) error {
 		QueryRaw: q,
 	}
 
-	_, err = r.db.DB().QueryContext(ctx, query, args...)
+	row, err := r.db.DB().QueryContext(ctx, query, args...)
+	defer func() {
+		clsErr := row.Close()
+		if clsErr != nil {
+			err = errors.Join(err, clsErr)
+		}
+	}()
+
 	if err != nil {
 		return fmt.Errorf("user_repository.create_user: %w", err)
 	}
