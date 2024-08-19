@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"fmt"
+
 	"text/template"
 )
 
@@ -17,5 +18,5 @@ func Render(path string, data interface{}) ([]byte, error) {
 		return []byte("Ошибка!"), fmt.Errorf("[utils.render.execute] %w", err)
 	}
 
-	return []byte(configBuffer.String()), nil
+	return configBuffer.Bytes(), nil
 }
