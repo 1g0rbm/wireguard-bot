@@ -3,12 +3,13 @@
 --------------------------- USERS ------------------------------------
 create table if not exists users (
                                      id serial primary key,
-                                     username varchar(255),
+                                     username varchar(255) ,
                                      first_name varchar(255),
                                      last_name varchar(255),
                                      role smallint not null,
-                                     public_key varchar(44) not null,
-                                     private_key varchar(44) not null,
+                                     public_key varchar(44) not null unique,
+                                     private_key varchar(44) not null unique,
+                                     state varchar(20) not null default 'disabled',
                                      created_at timestamp not null default now(),
                                      updated_at timestamp
 );
@@ -16,10 +17,10 @@ create table if not exists users (
 --------------------------- SERVERS ------------------------------------
 create table if not exists servers (
                                        id serial primary key,
-                                       name varchar(255) not null,
-                                       address varchar(21) not null,
-                                       public_key varchar(44) not null,
-                                       private_key varchar(44) not null,
+                                       name varchar(255) not null unique,
+                                       address varchar(21) not null unique,
+                                       public_key varchar(44) not null unique,
+                                       private_key varchar(44) not null unique,
                                        created_at timestamp not null default now(),
                                        updated_at timestamp
 );
@@ -28,6 +29,7 @@ create table if not exists servers (
 create table if not exists users2servers (
                                              user_id int not null,
                                              server_id int not null,
+                                             address varchar(21) not null,
                                              primary key (user_id, server_id),
                                              foreign key (user_id) references users (id) on delete cascade,
                                              foreign key (server_id) references servers (id) on delete cascade

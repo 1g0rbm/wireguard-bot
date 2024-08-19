@@ -1,9 +1,10 @@
 package pg
 
 import (
+	"wireguard-api/internal/db"
+
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
-	"wireguard-api/internal/db"
 )
 
 const driver = "pgx"

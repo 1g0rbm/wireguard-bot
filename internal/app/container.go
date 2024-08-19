@@ -17,8 +17,10 @@ import (
 	"wireguard-api/internal/repository"
 	"wireguard-api/internal/repository/server"
 	"wireguard-api/internal/repository/user"
+	"wireguard-api/internal/repository/users2servers"
 	"wireguard-api/internal/services"
 	configService "wireguard-api/internal/services/config"
+	userService "wireguard-api/internal/services/user"
 )
 
 type Container struct {
@@ -38,10 +40,12 @@ type Container struct {
 	configHandler  *handlers.ConfigHandler
 	qrHandler      *handlers.QRCodeHandler
 
-	userRepo   repository.UserRepository
-	serverRepo repository.ServerRepository
+	userRepo          repository.UserRepository
+	serverRepo        repository.ServerRepository
+	users2serversRepo repository.Users2Servers
 
 	configService services.ConfigService
+	userService   services.UserService
 }
 
 func newContainer() *Container {
@@ -56,7 +60,7 @@ func (c *Container) Logger() *slog.Logger {
 	file, err := os.OpenFile(
 		c.LogCfg().LogFilepath(),
 		os.O_CREATE|os.O_APPEND|os.O_WRONLY,
-		0666,
+		0600,
 	)
 	if err != nil {
 		log.Fatalf("error opening log file: %v", err)
@@ -119,12 +123,28 @@ func (c *Container) ServerRepo() repository.ServerRepository {
 	return c.serverRepo
 }
 
+func (c *Container) Users2ServersRepo() repository.Users2Servers {
+	if c.users2serversRepo == nil {
+		c.users2serversRepo = users2servers.NewRepository(c.DB())
+	}
+
+	return c.users2serversRepo
+}
+
 func (c *Container) ConfigService() services.ConfigService {
 	if c.configService == nil {
 		c.configService = configService.NewConfigService(c.UserRepo(), c.ServerRepo())
 	}
 
 	return c.configService
+}
+
+func (c *Container) UserService() services.UserService {
+	if c.userService == nil {
+		c.userService = userService.NewServiceUser(c.UserRepo(), c.Users2ServersRepo(), c.TxManager())
+	}
+
+	return c.userService
 }
 
 func (c *Container) LogCfg() config.LoggerConfig {
@@ -176,7 +196,7 @@ func (c *Container) Bot() *bot.Bot {
 
 func (c *Container) StartHandler() *handlers.StartHandler {
 	if c.startHandler == nil {
-		c.startHandler = handlers.NewStartHandler(c.UserRepo())
+		c.startHandler = handlers.NewStartHandler(c.UserService(), c.Logger())
 	}
 
 	return c.startHandler

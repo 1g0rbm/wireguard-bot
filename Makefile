@@ -12,6 +12,7 @@ stop-dev: \
 	stop-infra
 
 install-deps:
+	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	GOBIN=$(LOCAL_BIN) go install github.com/gojuno/minimock/v3/cmd/minimock@latest
 	GOBIN=$(LOCAL_BIN) go install github.com/joho/godotenv/cmd/godotenv@latest
 	GOBIN=$(LOCAL_BIN) go install github.com/pressly/goose/v3/cmd/goose@v3.14.0
@@ -58,3 +59,6 @@ migration-down:
 migration-create:
 	@read -p "Enter migration name: " migration_name; \
 	$(LOCAL_BIN)/goose -dir $(LOCAL_MIGRATION_DIR) postgres $(LOCAL_MIGRATION_DSN) create $$migration_name sql
+
+lint:
+	$(LOCAL_BIN)/golangci-lint run ./... --config .golangci.pipeline.yaml

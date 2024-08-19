@@ -1,3 +1,4 @@
+// Package closer provides functionality to manage closers that should be closed when the application stops.
 package closer
 
 import (
@@ -7,6 +8,8 @@ import (
 	"sync"
 )
 
+// Closer manages a set of cleanup functions that need to be executed.
+// upon receiving a termination signal or when explicitly invoked.
 type Closer struct {
 	once    sync.Once
 	done    chan struct{}
@@ -14,6 +17,8 @@ type Closer struct {
 	closers []func() error
 }
 
+// NewCloser creates a new Closer instance. If signals are provided,
+// it starts a goroutine that waits for any of those signals to be received.
 func NewCloser(sig ...os.Signal) *Closer {
 	clsr := &Closer{done: make(chan struct{})}
 	if len(sig) > 0 {
@@ -28,16 +33,19 @@ func NewCloser(sig ...os.Signal) *Closer {
 	return clsr
 }
 
+// Add provide functionality to add new closer to the storage.
 func (c *Closer) Add(f ...func() error) {
 	c.mu.Lock()
 	c.closers = append(c.closers, f...)
 	c.mu.Unlock()
 }
 
+// Wait using to wait done signal.
 func (c *Closer) Wait() {
 	<-c.done
 }
 
+// CloseAll runs all closers that were added via the Add method.
 func (c *Closer) CloseAll() {
 	c.once.Do(func() {
 		defer close(c.done)
@@ -54,7 +62,7 @@ func (c *Closer) CloseAll() {
 			}(fn)
 		}
 
-		for i := 0; i < cap(errs); i += 1 {
+		for i := 0; i < cap(errs); i++ {
 			if err := <-errs; err != nil {
 				log.Printf("closing error: %v\n", err)
 			}

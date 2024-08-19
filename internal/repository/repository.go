@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"wireguard-api/internal/repository/users2servers"
 
 	"wireguard-api/internal/repository/server"
 	"wireguard-api/internal/repository/user"
@@ -14,4 +15,8 @@ type UserRepository interface {
 
 type ServerRepository interface {
 	GetByName(ctx context.Context, name string) (*server.Server, error)
+}
+
+type Users2Servers interface {
+	CreateUsers2Servers(ctx context.Context, u2s *users2servers.Users2Servers) error
 }

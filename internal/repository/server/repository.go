@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Masterminds/squirrel"
+
 	"wireguard-api/internal/db"
 )
 

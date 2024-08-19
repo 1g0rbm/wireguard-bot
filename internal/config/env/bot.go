@@ -1,6 +1,6 @@
 package env
 
-const BotToken = "BOT_TOKEN"
+const botToken = "BOT_TOKEN"
 const defaultBotToken = ""
 
 type BotConfig struct {
@@ -9,7 +9,7 @@ type BotConfig struct {
 
 func NewBotConfig() *BotConfig {
 	return &BotConfig{
-		token: readEnvAsString(BotToken, defaultBotToken),
+		token: readEnvAsString(botToken, defaultBotToken),
 	}
 }
 

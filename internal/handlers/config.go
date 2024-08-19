@@ -34,6 +34,7 @@ func (h *ConfigHandler) Match(update *models.Update) bool {
 func (h *ConfigHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
 	cfgBytes, err := h.configService.GenerateConf(ctx, update.Message.Chat.ID)
 	if err != nil {
+		h.logger.ErrorContext(ctx, "Generate config error: ", "error", err)
 		msgBytes, errRender := utils.Render("static/something_went_wrong.tmp", nil)
 		if errRender != nil {
 			h.logger.ErrorContext(ctx, "Render message error.", "error", errRender)

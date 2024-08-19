@@ -1,13 +1,15 @@
+// Package config provides functionality for generating and managing vpn config for users
 package config
 
 import (
 	"context"
 	"fmt"
+
 	"wireguard-api/internal/services"
 	"wireguard-api/internal/utils"
 )
 
-const defaultServerName = "test"
+const defaultServerName = "astana_1"
 
 type vpnConfig struct {
 	UserPrivateKey      string
@@ -19,13 +21,14 @@ type vpnConfig struct {
 	PersistentKeepalive int
 }
 
-func (s *ServiceConfig) GenerateConf(ctx context.Context, userId int64) ([]byte, error) {
-	userModel, err := s.userRepo.GetUserById(ctx, userId)
+// GenerateConf method to generate vpn config for userId
+func (s *ServiceConfig) GenerateConf(ctx context.Context, userID int64) ([]byte, error) {
+	userModel, err := s.userRepo.GetUserById(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("[config_service.generate] %w", err)
 	}
 	if userModel == nil {
-		return nil, fmt.Errorf("[config_service.generate] %w", services.UserNotFound)
+		return nil, fmt.Errorf("[config_service.generate] %w", services.ErrUserNotFound)
 	}
 
 	serverModel, err := s.serverRepo.GetByName(ctx, defaultServerName)

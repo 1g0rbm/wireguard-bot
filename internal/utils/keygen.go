@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/base64"
+
 	"golang.org/x/crypto/curve25519"
 )
 

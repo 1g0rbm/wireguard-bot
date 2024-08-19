@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"context"
-	"fmt"
+	"log"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -20,5 +20,8 @@ func (h *DefaultHandler) Match(_ *models.Update) bool {
 }
 
 func (h *DefaultHandler) Handle(_ context.Context, _ *bot.Bot, update *models.Update) {
-	fmt.Println(update.Message.Chat.ID, update.Message.Chat.Username, update.Message.Text)
+	log.Printf(
+		"CahtId: %d\n Username:%s\n Text:%s\n",
+		update.Message.Chat.ID, update.Message.Chat.Username, update.Message.Text,
+	)
 }
