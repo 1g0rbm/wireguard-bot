@@ -1,6 +1,7 @@
 package pg
 
 import (
+	"fmt"
 	"wireguard-api/internal/db"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // enable db driver.
@@ -16,7 +17,7 @@ type Client struct {
 func NewClient(dsn string) (db.Client, error) {
 	conn, err := sqlx.Connect(driver, dsn)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("pg_client.new_client %w", err)
 	}
 
 	return &Client{
@@ -30,7 +31,12 @@ func (c *Client) DB() db.DB {
 
 func (c *Client) Close() error {
 	if c.masterDBC != nil {
-		return c.masterDBC.Close()
+		err := c.masterDBC.Close()
+		if err != nil {
+			return fmt.Errorf("pg_client.close %w", err)
+		}
+
+		return nil
 	}
 
 	return nil

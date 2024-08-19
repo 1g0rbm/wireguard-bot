@@ -3,6 +3,7 @@ package pg
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jmoiron/sqlx"
@@ -23,7 +24,7 @@ func NewDB(dbc *sqlx.DB) db.DB {
 
 func (p *pg) SelectContext(ctx context.Context, dest interface{}, q db.Query, args ...interface{}) error {
 	if err := p.dbc.SelectContext(ctx, dest, q.QueryRaw, args...); err != nil {
-		return err
+		return fmt.Errorf("pg.select_context %w", err)
 	}
 
 	return nil
@@ -31,7 +32,7 @@ func (p *pg) SelectContext(ctx context.Context, dest interface{}, q db.Query, ar
 
 func (p *pg) GetContext(ctx context.Context, dest interface{}, q db.Query, args ...interface{}) error {
 	if err := p.dbc.GetContext(ctx, dest, q.QueryRaw, args...); err != nil {
-		return err
+		return fmt.Errorf("pg.get_context %w", err)
 	}
 
 	return nil
@@ -40,19 +41,39 @@ func (p *pg) GetContext(ctx context.Context, dest interface{}, q db.Query, args 
 func (p *pg) ExecContext(ctx context.Context, q db.Query, args ...interface{}) (sql.Result, error) {
 	t, ok := ctx.Value(tx.TxKey).(sql.Tx)
 	if ok {
-		return t.ExecContext(ctx, q.QueryRaw, args...)
+		result, err := t.ExecContext(ctx, q.QueryRaw, args...)
+		if err != nil {
+			return nil, fmt.Errorf("pg.exec_context %w", err)
+		}
+
+		return result, nil
 	}
 
-	return p.dbc.ExecContext(ctx, q.QueryRaw, args...)
+	result, err := p.dbc.ExecContext(ctx, q.QueryRaw, args...)
+	if err != nil {
+		return nil, fmt.Errorf("pg.exec_context %w", err)
+	}
+
+	return result, nil
 }
 
 func (p *pg) QueryContext(ctx context.Context, q db.Query, args ...interface{}) (*sql.Rows, error) {
 	t, ok := ctx.Value(tx.TxKey).(sql.Tx)
 	if ok {
-		return t.QueryContext(ctx, q.QueryRaw, args...)
+		rows, err := t.QueryContext(ctx, q.QueryRaw, args...)
+		if err != nil {
+			return nil, fmt.Errorf("pg.query_context %w", err)
+		}
+
+		return rows, nil
 	}
 
-	return p.dbc.QueryContext(ctx, q.QueryRaw, args...)
+	rows, err := p.dbc.QueryContext(ctx, q.QueryRaw, args...)
+	if err != nil {
+		return nil, fmt.Errorf("pg.query_context %w", err)
+	}
+
+	return rows, nil
 }
 
 func (p *pg) QueryRowContext(ctx context.Context, q db.Query, args ...interface{}) pgx.Row {
@@ -65,13 +86,28 @@ func (p *pg) QueryRowContext(ctx context.Context, q db.Query, args ...interface{
 }
 
 func (p *pg) BeginTx(ctx context.Context, txOptions *sql.TxOptions) (db.Tx, error) {
-	return p.dbc.BeginTx(ctx, txOptions)
+	txInstance, err := p.dbc.BeginTx(ctx, txOptions)
+	if err != nil {
+		return nil, fmt.Errorf("pg.begin_tx %w", err)
+	}
+
+	return txInstance, nil
 }
 
 func (p *pg) Ping(ctx context.Context) error {
-	return p.dbc.PingContext(ctx)
+	err := p.dbc.PingContext(ctx)
+	if err != nil {
+		return fmt.Errorf("pg.ping %w", err)
+	}
+
+	return nil
 }
 
 func (p *pg) Close() error {
-	return p.dbc.Close()
+	err := p.dbc.Close()
+	if err != nil {
+		return fmt.Errorf("pg.close %w", err)
+	}
+
+	return nil
 }

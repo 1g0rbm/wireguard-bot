@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/go-telegram/bot"
@@ -51,7 +52,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 					Text:   string(msg),
 				})
 
-				return err
+				return fmt.Errorf("handler_start.handle %w", err)
 			},
 		)
 		return
@@ -72,7 +73,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 					ReplyMarkup: keyboard,
 				})
 
-				return err
+				return fmt.Errorf("handler_start.handle %w", err)
 			},
 		)
 		return
@@ -97,7 +98,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 					Text:   string(msg),
 				})
 
-				return err
+				return fmt.Errorf("handler_start.handle %w", err)
 			},
 		)
 		return
@@ -117,7 +118,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 				ReplyMarkup: keyboard,
 			})
 
-			return err
+			return fmt.Errorf("handler_start.handle %w", err)
 		},
 	)
 }
