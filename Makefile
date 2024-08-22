@@ -40,10 +40,6 @@ mock-generate:
 	go generate stats-back-minio/internal/services
 	go generate stats-back-minio/internal/s3
 
-test:
-	go clean -testcache
-	go test ./.../tests -covermode count -coverpkg=imp-api/internal/services/job/...
-
 docs-generate:
 	$(LOCAL_BIN)/swag init -g cmd/main.go
 
@@ -62,3 +58,7 @@ migration-create:
 
 lint:
 	$(LOCAL_BIN)/golangci-lint run ./... --config .golangci.pipeline.yaml
+
+test:
+	go clean -testcache
+	go test $(shell go list ./... | grep '_test')
