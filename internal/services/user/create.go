@@ -28,6 +28,11 @@ func (u *ServiceUser) Create(
 		serverID = defaultServerID
 	}
 
+	ip, err := u.dhcp.Reserve()
+	if err != nil {
+		return fmt.Errorf("[user_service.create] %w", err)
+	}
+
 	err = u.txManager.ReadCommited(ctx, func(ctx context.Context) error {
 		userModel := &user.Model{
 			ID:         userID,
@@ -46,7 +51,7 @@ func (u *ServiceUser) Create(
 		users2serversModel := &users2servers.Users2Servers{
 			UserID:   userID,
 			ServerID: serverID,
-			Address:  "10.0.0.2/24",
+			Address:  ip.String(),
 		}
 
 		if err = u.users2serversRepo.CreateUsers2Servers(ctx, users2serversModel); err != nil {

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"log"
 	"log/slog"
 	"os"
@@ -21,10 +22,13 @@ import (
 	"wireguard-api/internal/services"
 	configService "wireguard-api/internal/services/config"
 	userService "wireguard-api/internal/services/user"
+	"wireguard-api/internal/utils/dhcp"
 )
 
 const (
 	logFilePerms = 0600
+	mask         = "10.0.0.0/24"
+	gateway      = "10.0.0.1"
 )
 
 type Container struct {
@@ -50,6 +54,8 @@ type Container struct {
 
 	configService services.ConfigService
 	userService   services.UserService
+
+	dhcp *dhcp.DHCP
 }
 
 func newContainer() *Container {
@@ -137,7 +143,7 @@ func (c *Container) Users2ServersRepo() repository.Users2Servers {
 
 func (c *Container) ConfigService() services.ConfigService {
 	if c.configService == nil {
-		c.configService = configService.NewConfigService(c.UserRepo(), c.ServerRepo())
+		c.configService = configService.NewConfigService(c.Users2ServersRepo())
 	}
 
 	return c.configService
@@ -145,7 +151,7 @@ func (c *Container) ConfigService() services.ConfigService {
 
 func (c *Container) UserService() services.UserService {
 	if c.userService == nil {
-		c.userService = userService.NewServiceUser(c.UserRepo(), c.Users2ServersRepo(), c.TxManager())
+		c.userService = userService.NewServiceUser(c.UserRepo(), c.Users2ServersRepo(), c.TxManager(), c.DHCP())
 	}
 
 	return c.userService
@@ -228,4 +234,29 @@ func (c *Container) DefaultHandler() *handlers.DefaultHandler {
 	}
 
 	return c.defaultHandler
+}
+
+func (c *Container) DHCP() *dhcp.DHCP {
+	if c.dhcp == nil {
+		ctx := context.Background()
+
+		allocatedIPs, err := c.Users2ServersRepo().GetAllAllocatedIPsByServerAlias(ctx, "astana_1")
+		if err != nil {
+			log.Fatalf("DHCP initialize error: %s", err)
+		}
+
+		m := make(map[string]bool)
+		for _, allocatedIP := range allocatedIPs {
+			m[allocatedIP] = true
+		}
+
+		d, err := dhcp.NewDHCP(mask, gateway, m)
+		if err != nil {
+			log.Fatalf("DHCP initialize error: %s", err)
+		}
+
+		c.dhcp = d
+	}
+
+	return c.dhcp
 }

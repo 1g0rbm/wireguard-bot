@@ -41,6 +41,11 @@ func (d *DHCP) Reserve() (net.IP, error) {
 
 	ip := d.subnet.IP.Mask(d.subnet.Mask)
 	for d.subnet.Contains(ip) {
+		if d.subnet.IP.Equal(ip) {
+			incrementIP(ip)
+			continue
+		}
+
 		if d.gatewayIP.Equal(ip) {
 			incrementIP(ip)
 			continue

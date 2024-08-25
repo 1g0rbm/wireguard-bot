@@ -9,8 +9,6 @@ import (
 	"wireguard-api/internal/utils"
 )
 
-const defaultServerName = "astana_1"
-
 const (
 	keepAlive = 25
 )
@@ -27,25 +25,20 @@ type vpnConfig struct {
 
 // GenerateConf method to generate vpn config for userId.
 func (s *ServiceConfig) GenerateConf(ctx context.Context, userID int64) ([]byte, error) {
-	userModel, err := s.userRepo.GetUserByID(ctx, userID)
+	userServer, err := s.users2serversRepo.GetFullInfo(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("[config_service.generate] %w", err)
 	}
-	if userModel == nil {
+	if userServer == nil {
 		return nil, fmt.Errorf("[config_service.generate] %w", services.ErrUserNotFound)
 	}
 
-	serverModel, err := s.serverRepo.GetByName(ctx, defaultServerName)
-	if err != nil {
-		return nil, fmt.Errorf("[config_service.generate] %w", err)
-	}
-
 	config := vpnConfig{
-		UserPrivateKey:      userModel.PrivateKey,
-		UserAddress:         "10.0.0.2/24",
+		UserPrivateKey:      userServer.UserPrivateKey,
+		UserAddress:         userServer.UserAddress,
 		DNS:                 "8.8.8.8",
-		ServerPublicKey:     serverModel.PublicKey,
-		ServerEndpoint:      serverModel.Address,
+		ServerPublicKey:     userServer.ServerPublicKey,
+		ServerEndpoint:      userServer.ServerAddress,
 		AllowedIPs:          "0.0.0.0/0",
 		PersistentKeepalive: keepAlive,
 	}

@@ -4,14 +4,12 @@ import "wireguard-api/internal/repository"
 
 // ServiceConfig is business logic to handle config command.
 type ServiceConfig struct {
-	userRepo   repository.UserRepository
-	serverRepo repository.ServerRepository
+	users2serversRepo repository.Users2Servers
 }
 
 // NewConfigService creates new ServiceConfig instance.
-func NewConfigService(userRepo repository.UserRepository, serverRepo repository.ServerRepository) *ServiceConfig {
+func NewConfigService(users2serversRepo repository.Users2Servers) *ServiceConfig {
 	return &ServiceConfig{
-		userRepo:   userRepo,
-		serverRepo: serverRepo,
+		users2serversRepo: users2serversRepo,
 	}
 }
