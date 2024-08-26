@@ -20,5 +20,5 @@ type ServerRepository interface {
 type Users2Servers interface {
 	CreateUsers2Servers(ctx context.Context, u2s *users2servers.Users2Servers) error
 	GetAllAllocatedIPsByServerAlias(ctx context.Context, alias string) ([]string, error)
-	GetFullInfo(ctx context.Context, userId int64) (*users2servers.UsersServers, error)
+	GetFullInfo(ctx context.Context, userID int64) (*users2servers.UsersServers, error)
 }

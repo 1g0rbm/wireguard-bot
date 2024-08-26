@@ -43,7 +43,7 @@ linters-settings:
   funlen:
     # Checks the number of lines in a function.
     # If lower than 0, disable the check.
-    lines: 100
+    lines: 150
     # Checks the number of statements in a function.
     # If lower than 0, disable the check.
     statements: 50

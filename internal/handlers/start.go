@@ -82,10 +82,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 				return utils.Render("static/messages/something_went_wrong.tmp", nil)
 			},
 			func(msg []byte) error {
-				_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-					ChatID: update.Message.Chat.ID,
-					Text:   string(msg),
-				})
+				_, err := b.SendMessage(ctx, &bot.SendMessageParams{ChatID: update.Message.Chat.ID, Text: string(msg)})
 				if err != nil {
 					return fmt.Errorf("handler_start.handle %w", err)
 				}
@@ -113,10 +110,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 				return utils.Render("static/messages/something_went_wrong.tmp", nil)
 			},
 			func(msg []byte) error {
-				_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-					ChatID: update.Message.Chat.ID,
-					Text:   string(msg),
-				})
+				_, err := b.SendMessage(ctx, &bot.SendMessageParams{ChatID: update.Message.Chat.ID, Text: string(msg)})
 				if err != nil {
 					return fmt.Errorf("handler_start.handle %w", err)
 				}

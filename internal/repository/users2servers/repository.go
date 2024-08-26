@@ -53,7 +53,12 @@ func (r *Repository) CreateUsers2Servers(ctx context.Context, u2s *Users2Servers
 		QueryRaw: q,
 	}
 
-	_, err = r.db.DB().QueryContext(ctx, query, args...)
+	row, err := r.db.DB().QueryContext(ctx, query, args...)
+	defer func() {
+		if clsErr := row.Close(); clsErr != nil {
+			err = errors.Join(err, clsErr)
+		}
+	}()
 	if err != nil {
 		return fmt.Errorf("user_repository.create_user: %w", err)
 	}
@@ -103,7 +108,7 @@ func (r *Repository) GetAllAllocatedIPsByServerAlias(ctx context.Context, alias 
 	return ips, nil
 }
 
-func (r *Repository) GetFullInfo(ctx context.Context, userId int64) (*UsersServers, error) {
+func (r *Repository) GetFullInfo(ctx context.Context, userID int64) (*UsersServers, error) {
 	q, args, err := squirrel.Select(
 		"users.id as user_id",
 		"users.username as username",
@@ -124,7 +129,7 @@ func (r *Repository) GetFullInfo(ctx context.Context, userId int64) (*UsersServe
 		From(table).
 		Join("servers ON users2servers.server_id = servers.id").
 		Join("users ON users2servers.user_id = users.id").
-		Where(squirrel.Eq{"users.id": userId}).
+		Where(squirrel.Eq{"users.id": userID}).
 		ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("users2servers_repository.get_full_info %w", err)
