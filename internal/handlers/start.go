@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"wireguard-api/internal/repository/user"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -31,15 +32,6 @@ func (h *StartHandler) Match(update *models.Update) bool {
 }
 
 func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
-	keyboard := &models.ReplyKeyboardMarkup{
-		Keyboard: [][]models.KeyboardButton{
-			{{Text: configCommand}},
-			{{Text: qrCodeCommand}},
-		},
-		ResizeKeyboard:  true,
-		OneTimeKeyboard: false,
-	}
-
 	utils.SendMessage(
 		func() ([]byte, error) {
 			return utils.Render(
@@ -75,7 +67,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 		},
 	)
 
-	user, err := h.userService.FindUser(ctx, update.Message.Chat.ID)
+	userModel, err := h.userService.FindUser(ctx, update.Message.Chat.ID)
 	if err != nil {
 		utils.SendMessage(
 			func() ([]byte, error) {
@@ -92,7 +84,38 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 		return
 	}
 
-	if user != nil {
+	fmt.Println(userModel)
+	fmt.Println(userModel.State)
+	fmt.Println(userModel.StateIs(user.EnabledState))
+
+	if userModel != nil && userModel.StateIs(user.EnabledState) {
+		var keyboard *models.ReplyKeyboardMarkup
+		if userModel.RoleIs(user.AdminRole) {
+			keyboard = adminConfigKeyboard
+		} else {
+			keyboard = configKeyboard
+		}
+
+		utils.SendMessage(
+			func() ([]byte, error) {
+				return utils.Render(
+					"static/messages/user_already_enabled.tmp",
+					map[string]string{"Username": update.Message.Chat.Username},
+				)
+			},
+			func(msg []byte) error {
+				_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+					ChatID:      update.Message.Chat.ID,
+					Text:        string(msg),
+					ParseMode:   models.ParseModeMarkdown,
+					ReplyMarkup: keyboard,
+				})
+				if err != nil {
+					return fmt.Errorf("handler_start.handle %w", err)
+				}
+				return nil
+			},
+		)
 		return
 	}
 
@@ -129,10 +152,9 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 		},
 		func(msg []byte) error {
 			_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID:      update.Message.Chat.ID,
-				Text:        string(msg),
-				ReplyMarkup: keyboard,
-				ParseMode:   models.ParseModeMarkdown,
+				ChatID:    update.Message.Chat.ID,
+				Text:      string(msg),
+				ParseMode: models.ParseModeMarkdown,
 			})
 			if err != nil {
 				return fmt.Errorf("handler_start.handle %w", err)

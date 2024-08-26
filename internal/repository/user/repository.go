@@ -19,6 +19,7 @@ const (
 	colFirstname  = "first_name"
 	colLastname   = "last_name"
 	colRole       = "role"
+	colState      = "state"
 	colPublicKey  = "public_key"
 	colPrivateKey = "private_key"
 	colCreatedAt  = "created_at"
@@ -42,6 +43,7 @@ func (r *Repository) GetUserByID(ctx context.Context, id int64) (*Model, error) 
 		colFirstname,
 		colLastname,
 		colRole,
+		colState,
 		colPublicKey,
 		colPrivateKey,
 		colCreatedAt,

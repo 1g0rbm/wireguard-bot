@@ -5,6 +5,16 @@ import (
 	"time"
 )
 
+const (
+	DisabledState = "disabled"
+	EnabledState  = "enabled"
+)
+
+const (
+	UserRole = iota + 1
+	AdminRole
+)
+
 type Model struct {
 	ID         int64        `db:"id"`
 	Username   string       `db:"username"`
@@ -16,4 +26,12 @@ type Model struct {
 	State      string       `db:"state"`
 	CreatedAt  time.Time    `db:"created_at"`
 	UpdatedAt  sql.NullTime `db:"updated_at"`
+}
+
+func (m Model) RoleIs(role int8) bool {
+	return m.Role == role
+}
+
+func (m Model) StateIs(state string) bool {
+	return m.State == state
 }
