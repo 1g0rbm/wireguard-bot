@@ -40,6 +40,41 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 		OneTimeKeyboard: false,
 	}
 
+	utils.SendMessage(
+		func() ([]byte, error) {
+			return utils.Render(
+				"static/messages/greetings.tmp",
+				map[string]string{"Username": update.Message.Chat.Username},
+			)
+		},
+		func(msg []byte) error {
+			_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID:    update.Message.Chat.ID,
+				Text:      string(msg),
+				ParseMode: models.ParseModeMarkdown,
+			})
+			if err != nil {
+				return fmt.Errorf("handler_start.handle %w", err)
+			}
+			return nil
+		},
+	)
+
+	utils.SendMessage(
+		func() ([]byte, error) { return utils.Render("static/messages/about.tmp", nil) },
+		func(msg []byte) error {
+			_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID:    update.Message.Chat.ID,
+				Text:      string(msg),
+				ParseMode: models.ParseModeMarkdown,
+			})
+			if err != nil {
+				return fmt.Errorf("handler_start.handle %w", err)
+			}
+			return nil
+		},
+	)
+
 	user, err := h.userService.FindUser(ctx, update.Message.Chat.ID)
 	if err != nil {
 		utils.SendMessage(
@@ -61,25 +96,6 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 	}
 
 	if user != nil {
-		utils.SendMessage(
-			func() ([]byte, error) {
-				return utils.Render(
-					"static/messages/configuration_exist.tmp",
-					map[string]string{"Username": update.Message.Chat.Username},
-				)
-			},
-			func(msg []byte) error {
-				_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-					ChatID:      update.Message.Chat.ID,
-					Text:        string(msg),
-					ReplyMarkup: keyboard,
-				})
-				if err != nil {
-					return fmt.Errorf("handler_start.handle %w", err)
-				}
-				return nil
-			},
-		)
 		return
 	}
 
@@ -113,7 +129,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 	utils.SendMessage(
 		func() ([]byte, error) {
 			return utils.Render(
-				"static/messages/configuration_generating.tmp",
+				"static/messages/user_created.tmp",
 				map[string]string{"Username": update.Message.Chat.Username},
 			)
 		},
@@ -122,6 +138,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 				ChatID:      update.Message.Chat.ID,
 				Text:        string(msg),
 				ReplyMarkup: keyboard,
+				ParseMode:   models.ParseModeMarkdown,
 			})
 			if err != nil {
 				return fmt.Errorf("handler_start.handle %w", err)
