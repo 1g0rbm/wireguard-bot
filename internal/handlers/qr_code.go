@@ -34,7 +34,7 @@ func (h *QRCodeHandler) Match(update *models.Update) bool {
 func (h *QRCodeHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
 	qrBytes, err := h.configService.GenerateQR(ctx, update.Message.Chat.ID)
 	if err != nil {
-		msgBytes, errRender := utils.Render("static/something_went_wrong.tmp", nil)
+		msgBytes, errRender := utils.Render("static/messages/something_went_wrong.tmp", nil)
 		if errRender != nil {
 			h.logger.ErrorContext(ctx, "Render message error.", "error", errRender)
 		}
@@ -47,7 +47,7 @@ func (h *QRCodeHandler) Handle(ctx context.Context, b *bot.Bot, update *models.U
 		}
 	}
 
-	msgBytes, errRender := utils.Render("static/sending_qr.tmp", nil)
+	msgBytes, errRender := utils.Render("static/messages/sending_qr.tmp", nil)
 	if errRender != nil {
 		h.logger.ErrorContext(ctx, "Render message error.", "error", errRender)
 	}

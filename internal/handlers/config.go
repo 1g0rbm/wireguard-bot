@@ -35,7 +35,7 @@ func (h *ConfigHandler) Handle(ctx context.Context, b *bot.Bot, update *models.U
 	cfgBytes, err := h.configService.GenerateConf(ctx, update.Message.Chat.ID)
 	if err != nil {
 		h.logger.ErrorContext(ctx, "Generate config error: ", "error", err)
-		msgBytes, errRender := utils.Render("static/something_went_wrong.tmp", nil)
+		msgBytes, errRender := utils.Render("static/messages/something_went_wrong.tmp", nil)
 		if errRender != nil {
 			h.logger.ErrorContext(ctx, "Render message error.", "error", errRender)
 		}
@@ -48,7 +48,7 @@ func (h *ConfigHandler) Handle(ctx context.Context, b *bot.Bot, update *models.U
 		}
 	}
 
-	msgBytes, errRender := utils.Render("static/sending_conf.tmp", nil)
+	msgBytes, errRender := utils.Render("static/messages/sending_conf.tmp", nil)
 	if errRender != nil {
 		h.logger.ErrorContext(ctx, "Render message error.", "error", errRender)
 	}

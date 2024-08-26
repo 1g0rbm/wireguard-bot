@@ -1,6 +1,10 @@
 package services
 
-import "context"
+import (
+	"context"
+
+	"wireguard-api/internal/repository/user"
+)
 
 type ConfigService interface {
 	GenerateConf(ctx context.Context, userID int64) ([]byte, error)
@@ -9,5 +13,5 @@ type ConfigService interface {
 
 type UserService interface {
 	Create(ctx context.Context, serverID int, userID int64, username, firstName, lastname string) error
-	IsUserExist(ctx context.Context, userID int64) (bool, error)
+	FindUser(ctx context.Context, userID int64) (*user.Model, error)
 }
