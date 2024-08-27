@@ -34,9 +34,20 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
+      - name: Create local bin directory
+        run: mkdir -p ${{ github.workspace }}/bin
+
       - name: Install linters and tools
+        env:
+          GOBIN: ${{ github.workspace }}/bin
         run: |
-          make install-deps
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          go install github.com/gojuno/minimock/v3/cmd/minimock@latest
+          go install github.com/joho/godotenv/cmd/godotenv@latest
+          go install github.com/pressly/goose/v3/cmd/goose@v3.14.0
+
+      - name: Add local bin to PATH
+        run: echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
 
   lint:
     runs-on: ubuntu-latest
@@ -47,6 +58,8 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run linter
+        env:
+          PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
         run: make lint
 
   test:
@@ -58,4 +71,6 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run tests
+        env:
+          PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
         run: make test
