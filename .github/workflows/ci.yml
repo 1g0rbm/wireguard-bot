@@ -25,7 +25,13 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y make
+          echo "Make version:"
           make --version
+
+      - name: Verify make is in PATH
+        run: |
+          echo "PATH is: $PATH"
+          which make
 
       - name: Cache Go modules
         uses: actions/cache@v3
@@ -63,9 +69,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
 
+      - name: Verify make in PATH
+        run: |
+          echo "PATH is: $PATH"
+          which make
+
       - name: Run linter
         env:
-          PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
+          PATH: /usr/local/bin:/usr/bin:/bin:${{ github.workspace }}/bin:${{ env.PATH }}
         run: make lint
 
   test:
@@ -76,7 +87,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
 
+      - name: Verify make in PATH
+        run: |
+          echo "PATH is: $PATH"
+          which make
+
       - name: Run tests
         env:
-          PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
+          PATH: /usr/local/bin:/usr/bin:/bin:${{ github.workspace }}/bin:${{ env.PATH }}
         run: make test
