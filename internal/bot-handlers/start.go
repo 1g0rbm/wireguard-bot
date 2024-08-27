@@ -1,4 +1,4 @@
-package bot_handlers
+package bothandlers
 
 import (
 	"context"
@@ -85,7 +85,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 	}
 
 	if userModel != nil && userModel.StateIs(user.EnabledState) {
-		handleEnabledUser(ctx, b, update, userModel)
+		handleEnabledUser(ctx, b, update)
 		return
 	}
 
@@ -134,27 +134,14 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 	)
 }
 
-func handleEnabledUser(ctx context.Context, b *bot.Bot, update *models.Update, userModel *user.Model) {
-	var keyboard *models.ReplyKeyboardMarkup
-	if userModel.RoleIs(user.AdminRole) {
-		keyboard = &models.ReplyKeyboardMarkup{
-			Keyboard: [][]models.KeyboardButton{
-				{{Text: configCommand}},
-				{{Text: qrCodeCommand}},
-				{{Text: "GetDisabledUserList"}},
-			},
-			ResizeKeyboard:  true,
-			OneTimeKeyboard: false,
-		}
-	} else {
-		keyboard = &models.ReplyKeyboardMarkup{
-			Keyboard: [][]models.KeyboardButton{
-				{{Text: configCommand}},
-				{{Text: qrCodeCommand}},
-			},
-			ResizeKeyboard:  true,
-			OneTimeKeyboard: false,
-		}
+func handleEnabledUser(ctx context.Context, b *bot.Bot, update *models.Update) {
+	keyboard := &models.ReplyKeyboardMarkup{
+		Keyboard: [][]models.KeyboardButton{
+			{{Text: configCommand}},
+			{{Text: qrCodeCommand}},
+		},
+		ResizeKeyboard:  true,
+		OneTimeKeyboard: false,
 	}
 
 	utils.SendMessage(

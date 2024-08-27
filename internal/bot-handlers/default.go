@@ -1,4 +1,4 @@
-package bot_handlers
+package bothandlers
 
 import (
 	"context"

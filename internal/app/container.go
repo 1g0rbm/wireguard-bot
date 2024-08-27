@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-telegram/bot"
 
-	"wireguard-api/internal/bot_handlers"
+	bothandlers "wireguard-api/internal/bot-handlers"
 	"wireguard-api/internal/closer"
 	"wireguard-api/internal/config"
 	"wireguard-api/internal/config/env"
@@ -43,10 +43,10 @@ type Container struct {
 	db        db.Client
 	txManager db.TxManager
 
-	startHandler   *bot_handlers.StartHandler
-	defaultHandler *bot_handlers.DefaultHandler
-	configHandler  *bot_handlers.ConfigHandler
-	qrHandler      *bot_handlers.QRCodeHandler
+	startHandler   *bothandlers.StartHandler
+	defaultHandler *bothandlers.DefaultHandler
+	configHandler  *bothandlers.ConfigHandler
+	qrHandler      *bothandlers.QRCodeHandler
 
 	userRepo          repository.UserRepository
 	serverRepo        repository.ServerRepository
@@ -204,33 +204,33 @@ func (c *Container) Bot() *bot.Bot {
 	return c.bot
 }
 
-func (c *Container) StartHandler() *bot_handlers.StartHandler {
+func (c *Container) StartHandler() *bothandlers.StartHandler {
 	if c.startHandler == nil {
-		c.startHandler = bot_handlers.NewStartHandler(c.UserService(), c.Logger())
+		c.startHandler = bothandlers.NewStartHandler(c.UserService(), c.Logger())
 	}
 
 	return c.startHandler
 }
 
-func (c *Container) ConfigHandler() *bot_handlers.ConfigHandler {
+func (c *Container) ConfigHandler() *bothandlers.ConfigHandler {
 	if c.configHandler == nil {
-		c.configHandler = bot_handlers.NewConfigHandler(c.ConfigService(), c.Logger())
+		c.configHandler = bothandlers.NewConfigHandler(c.ConfigService(), c.Logger())
 	}
 
 	return c.configHandler
 }
 
-func (c *Container) QRCodeHandler() *bot_handlers.QRCodeHandler {
+func (c *Container) QRCodeHandler() *bothandlers.QRCodeHandler {
 	if c.qrHandler == nil {
-		c.qrHandler = bot_handlers.NewQRCodeHandler(c.ConfigService(), c.Logger())
+		c.qrHandler = bothandlers.NewQRCodeHandler(c.ConfigService(), c.Logger())
 	}
 
 	return c.qrHandler
 }
 
-func (c *Container) DefaultHandler() *bot_handlers.DefaultHandler {
+func (c *Container) DefaultHandler() *bothandlers.DefaultHandler {
 	if c.defaultHandler == nil {
-		c.defaultHandler = bot_handlers.NewDefaultHandler()
+		c.defaultHandler = bothandlers.NewDefaultHandler()
 	}
 
 	return c.defaultHandler
