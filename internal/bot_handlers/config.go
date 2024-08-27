@@ -1,4 +1,4 @@
-package handlers
+package bot_handlers
 
 import (
 	"bytes"

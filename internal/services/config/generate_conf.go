@@ -43,7 +43,7 @@ func (s *ServiceConfig) GenerateConf(ctx context.Context, userID int64) ([]byte,
 		PersistentKeepalive: keepAlive,
 	}
 
-	configBytes, err := utils.Render("static/user_vpn_config.tmp", config)
+	configBytes, err := utils.Render("static/configs/user_vpn.tmp", config)
 	if err != nil {
 		return nil, fmt.Errorf("[config_service.generate] %w", err)
 	}

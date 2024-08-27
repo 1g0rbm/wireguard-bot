@@ -4,13 +4,6 @@ LOCAL_BIN:=$(CURDIR)/bin
 LOCAL_MIGRATION_DIR=$(MIGRATION_DIR)
 LOCAL_MIGRATION_DSN="host=localhost port=$(PG_PORT) dbname=$(PG_DATABASE_NAME) user=$(PG_USER) password=$(PG_PASSWORD) sslmode=disable"
 
-run-dev: \
-	run-infra \
-	run-go
-
-stop-dev: \
-	stop-infra
-
 install-deps:
 	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	GOBIN=$(LOCAL_BIN) go install github.com/gojuno/minimock/v3/cmd/minimock@latest
@@ -20,8 +13,8 @@ install-deps:
 update-modules:
 	GOPRIVATE=$(GOPRIVATE) go mod tidy
 
-run-go:
-	$(LOCAL_BIN)/godotenv -f .env go run cmd/main.go
+run-bot:
+	$(LOCAL_BIN)/godotenv -f .env go run cmd/bot.go
 
 run-infra:
 	docker compose up -d --build

@@ -25,12 +25,12 @@ func NewApp() *App {
 }
 
 func (a *App) Start(ctx context.Context) {
-	a.initCommandHandlers()
+	a.initBotCommandHandlers()
 
 	a.bot.Start(ctx)
 }
 
-func (a *App) initCommandHandlers() {
+func (a *App) initBotCommandHandlers() {
 	a.bot.RegisterHandlerMatchFunc(a.container.StartHandler().Match, a.container.StartHandler().Handle)
 	a.bot.RegisterHandlerMatchFunc(a.container.ConfigHandler().Match, a.container.ConfigHandler().Handle)
 	a.bot.RegisterHandlerMatchFunc(a.container.QRCodeHandler().Match, a.container.QRCodeHandler().Handle)
