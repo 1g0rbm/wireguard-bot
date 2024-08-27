@@ -1,45 +1,27 @@
-name: CI Pipeline
+name: CI
 
 on:
   push:
     branches:
       - master
+      - main
   pull_request:
     branches:
       - master
+      - main
 
 jobs:
-  setup:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Set up Go environment
-        uses: actions/setup-go@v4
+      - name: Set up Go
+        uses: actions/setup-go@v3
         with:
           go-version: '1.23'
-
-      - name: Install make
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y make
-
-      - name: Create local bin directory
-        run: mkdir -p ${{ github.workspace }}/bin
-
-      - name: Add local bin to PATH
-        run: echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
-
-      - name: Install linters and tools
-        env:
-          GOBIN: ${{ github.workspace }}/bin
-        run: |
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-          go install github.com/gojuno/minimock/v3/cmd/minimock@latest
-          go install github.com/joho/godotenv/cmd/godotenv@latest
-          go install github.com/pressly/goose/v3/cmd/goose@v3.14.0
 
       - name: Cache Go modules
         uses: actions/cache@v3
@@ -51,37 +33,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
+      - name: Create bin directory
+        run: mkdir -p bin
+
       - name: Install dependencies
-        run: go mod download
-
-  lint:
-    runs-on: ubuntu-latest
-    needs: setup
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v2
-
-      - name: Verify make and tools in PATH
-        run: |
-          echo "PATH is: $PATH"
-          which make
-          which golangci-lint
+        run: make install-deps
 
       - name: Run linter
-        env:
-          PATH: /usr/local/bin:/usr/bin:/bin:${{ github.workspace }}/bin:${{ env.PATH }}
         run: make lint
 
-  test:
-    runs-on: ubuntu-latest
-    needs: lint
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v2
-
       - name: Run tests
-        env:
-          PATH: /usr/local/bin:/usr/bin:/bin:${{ github.workspace }}/bin:${{ env.PATH }}
         run: make test
