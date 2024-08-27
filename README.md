@@ -10,22 +10,27 @@
 ### Install
 ```sh
 # install binary deps
-$ make install-deps
+make install-deps
 ```
 ```sh
+# создать .env, заменить значения на свои
+cp .env.example .env
+``` 
+```sh
 # install modules
-$ make update-modules
+make update-modules
 ```
+
 ### Run
 ```sh
 # запустить инфраструктуру(бд и пр.)
-$ make run-infra
+make run-infra
 ```
 ```sh
 # накатить миграции
-$ make migration-up
+make migration-up
 ```
 ```sh
 # запустить бот
-$ make run-bot
+make run-bot
 ```
