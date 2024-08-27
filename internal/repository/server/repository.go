@@ -6,7 +6,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 
-	"wireguard-api/internal/db"
+	"wireguard-bot/internal/db"
 )
 
 const table = "servers"

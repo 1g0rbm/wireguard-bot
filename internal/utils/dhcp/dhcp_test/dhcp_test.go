@@ -3,7 +3,7 @@ package dhcp_test
 import (
 	"net"
 	"testing"
-	"wireguard-api/internal/utils/dhcp"
+	"wireguard-bot/internal/utils/dhcp"
 
 	"github.com/stretchr/testify/require"
 )

@@ -8,9 +8,9 @@ import (
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 
-	"wireguard-api/internal/repository/user"
-	"wireguard-api/internal/services"
-	"wireguard-api/internal/utils"
+	"wireguard-bot/internal/repository/user"
+	"wireguard-bot/internal/services"
+	"wireguard-bot/internal/utils"
 )
 
 const startCommand = "/start"

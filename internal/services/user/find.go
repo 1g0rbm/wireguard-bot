@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"wireguard-api/internal/repository/user"
+	"wireguard-bot/internal/repository/user"
 )
 
 func (u *ServiceUser) FindUser(ctx context.Context, userID int64) (*user.Model, error) {

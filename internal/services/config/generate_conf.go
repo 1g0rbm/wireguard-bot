@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 
-	"wireguard-api/internal/services"
-	"wireguard-api/internal/utils"
+	"wireguard-bot/internal/services"
+	"wireguard-bot/internal/utils"
 )
 
 const (

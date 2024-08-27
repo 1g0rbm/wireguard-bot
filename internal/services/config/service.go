@@ -1,6 +1,6 @@
 package config
 
-import "wireguard-api/internal/repository"
+import "wireguard-bot/internal/repository"
 
 // ServiceConfig is business logic to handle config command.
 type ServiceConfig struct {

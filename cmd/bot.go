@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"wireguard-api/internal/app"
+	"wireguard-bot/internal/app"
 )
 
 func main() {

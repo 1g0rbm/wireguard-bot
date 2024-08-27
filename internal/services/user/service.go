@@ -1,9 +1,9 @@
 package user
 
 import (
-	"wireguard-api/internal/db"
-	"wireguard-api/internal/repository"
-	"wireguard-api/internal/utils/dhcp"
+	"wireguard-bot/internal/db"
+	"wireguard-bot/internal/repository"
+	"wireguard-bot/internal/utils/dhcp"
 )
 
 type ServiceUser struct {

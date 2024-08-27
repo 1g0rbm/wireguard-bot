@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"wireguard-api/internal/repository/user"
-	"wireguard-api/internal/repository/users2servers"
-	"wireguard-api/internal/utils"
+	"wireguard-bot/internal/repository/user"
+	"wireguard-bot/internal/repository/users2servers"
+	"wireguard-bot/internal/utils"
 )
 
 const defaultServerID = 1

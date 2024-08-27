@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"wireguard-api/internal/repository/user"
+	"wireguard-bot/internal/repository/user"
 )
 
 type ConfigService interface {

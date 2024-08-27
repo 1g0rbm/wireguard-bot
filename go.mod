@@ -1,4 +1,4 @@
-module wireguard-api
+module wireguard-bot
 
 go 1.22.4
 

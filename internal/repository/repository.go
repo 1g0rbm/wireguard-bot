@@ -2,10 +2,10 @@ package repository
 
 import (
 	"context"
-	"wireguard-api/internal/repository/users2servers"
+	"wireguard-bot/internal/repository/users2servers"
 
-	"wireguard-api/internal/repository/server"
-	"wireguard-api/internal/repository/user"
+	"wireguard-bot/internal/repository/server"
+	"wireguard-bot/internal/repository/user"
 )
 
 type UserRepository interface {

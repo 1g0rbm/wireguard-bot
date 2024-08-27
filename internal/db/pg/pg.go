@@ -8,8 +8,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jmoiron/sqlx"
 
-	"wireguard-api/internal/db"
-	"wireguard-api/internal/db/tx"
+	"wireguard-bot/internal/db"
+	"wireguard-bot/internal/db/tx"
 )
 
 type pg struct {

@@ -2,7 +2,7 @@ package pg
 
 import (
 	"fmt"
-	"wireguard-api/internal/db"
+	"wireguard-bot/internal/db"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // enable db driver.
 	"github.com/jmoiron/sqlx"

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"wireguard-api/internal/db"
+	"wireguard-bot/internal/db"
 )
 
 type ctxKey string
