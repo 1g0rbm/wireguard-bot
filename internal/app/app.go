@@ -2,11 +2,18 @@ package app
 
 import (
 	"context"
-	"github.com/go-chi/chi/v5"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-telegram/bot"
+)
+
+const (
+	readTimeout  = 5 * time.Second
+	writeTimeout = 10 * time.Second
+	idleTimeout  = 15 * time.Second
 )
 
 // App is a container which provide interface to manging application.
@@ -34,8 +41,16 @@ func (a *App) Start(ctx context.Context) {
 
 	go a.bot.Start(ctx)
 
+	srv := &http.Server{
+		Addr:         ":8080",
+		Handler:      a.server,
+		ReadTimeout:  readTimeout,
+		WriteTimeout: writeTimeout,
+		IdleTimeout:  idleTimeout,
+	}
+
 	go func() {
-		if err := http.ListenAndServe(":8080", a.server); err != nil {
+		if err := srv.ListenAndServe(); err != nil {
 			log.Fatalf("Starting server error: %s", err)
 		}
 	}()
