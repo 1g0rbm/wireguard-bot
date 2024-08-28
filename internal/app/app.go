@@ -2,6 +2,9 @@ package app
 
 import (
 	"context"
+	"github.com/go-chi/chi/v5"
+	"log"
+	"net/http"
 
 	"github.com/go-telegram/bot"
 )
@@ -11,23 +14,35 @@ import (
 type App struct {
 	container *Container
 	bot       *bot.Bot
+	server    chi.Router
 }
 
 // NewApp creates new instance of App.
 func NewApp() *App {
 	di := newContainer()
-	b := di.Bot()
 
 	return &App{
 		container: di,
-		bot:       b,
+		bot:       di.Bot(),
+		server:    di.Server(),
 	}
 }
 
 func (a *App) Start(ctx context.Context) {
 	a.initBotCommandHandlers()
+	a.initServerHandlers()
 
-	a.bot.Start(ctx)
+	go a.bot.Start(ctx)
+
+	go func() {
+		if err := http.ListenAndServe(":8080", a.server); err != nil {
+			log.Fatalf("Starting server error: %s", err)
+		}
+	}()
+}
+
+func (a *App) initServerHandlers() {
+	a.container.RootHandler().Register(a.server)
 }
 
 func (a *App) initBotCommandHandlers() {

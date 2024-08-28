@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-telegram/bot"
 
 	bothandlers "wireguard-bot/internal/bot-handlers"
@@ -19,6 +21,7 @@ import (
 	"wireguard-bot/internal/repository/server"
 	"wireguard-bot/internal/repository/user"
 	"wireguard-bot/internal/repository/users2servers"
+	server_handlers "wireguard-bot/internal/server-handlers"
 	"wireguard-bot/internal/services"
 	configService "wireguard-bot/internal/services/config"
 	userService "wireguard-bot/internal/services/user"
@@ -39,6 +42,7 @@ type Container struct {
 	pgCfg     config.PGConfig
 	loggerCfg config.LoggerConfig
 
+	server    chi.Router
 	bot       *bot.Bot
 	db        db.Client
 	txManager db.TxManager
@@ -47,6 +51,8 @@ type Container struct {
 	defaultHandler *bothandlers.DefaultHandler
 	configHandler  *bothandlers.ConfigHandler
 	qrHandler      *bothandlers.QRCodeHandler
+
+	rootHandler *server_handlers.RootHandler
 
 	userRepo          repository.UserRepository
 	serverRepo        repository.ServerRepository
@@ -60,6 +66,25 @@ type Container struct {
 
 func newContainer() *Container {
 	return &Container{}
+}
+
+func (c *Container) Server() chi.Router {
+	if c.server == nil {
+		c.server = chi.NewRouter()
+
+		c.server.Use(middleware.Logger)
+		c.server.Use(middleware.Recoverer)
+	}
+
+	return c.server
+}
+
+func (c *Container) RootHandler() *server_handlers.RootHandler {
+	if c.rootHandler == nil {
+		c.rootHandler = server_handlers.NewRootHandler()
+	}
+
+	return c.rootHandler
 }
 
 func (c *Container) Logger() *slog.Logger {
