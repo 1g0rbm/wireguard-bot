@@ -2,8 +2,18 @@ package app
 
 import (
 	"context"
+	"log"
+	"net/http"
+	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-telegram/bot"
+)
+
+const (
+	readTimeout  = 5 * time.Second
+	writeTimeout = 10 * time.Second
+	idleTimeout  = 15 * time.Second
 )
 
 // App is a container which provide interface to manging application.
@@ -11,23 +21,43 @@ import (
 type App struct {
 	container *Container
 	bot       *bot.Bot
+	server    chi.Router
 }
 
 // NewApp creates new instance of App.
 func NewApp() *App {
 	di := newContainer()
-	b := di.Bot()
 
 	return &App{
 		container: di,
-		bot:       b,
+		bot:       di.Bot(),
+		server:    di.Server(),
 	}
 }
 
 func (a *App) Start(ctx context.Context) {
 	a.initBotCommandHandlers()
+	a.initServerHandlers()
 
-	a.bot.Start(ctx)
+	go a.bot.Start(ctx)
+
+	srv := &http.Server{
+		Addr:         ":8080",
+		Handler:      a.server,
+		ReadTimeout:  readTimeout,
+		WriteTimeout: writeTimeout,
+		IdleTimeout:  idleTimeout,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Fatalf("Starting server error: %s", err)
+		}
+	}()
+}
+
+func (a *App) initServerHandlers() {
+	a.container.RootHandler().Register(a.server)
 }
 
 func (a *App) initBotCommandHandlers() {
