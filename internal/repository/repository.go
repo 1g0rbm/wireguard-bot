@@ -2,11 +2,18 @@ package repository
 
 import (
 	"context"
-	"wireguard-bot/internal/repository/users2servers"
 
 	"wireguard-bot/internal/repository/server"
+	"wireguard-bot/internal/repository/session"
 	"wireguard-bot/internal/repository/user"
+	"wireguard-bot/internal/repository/users2servers"
 )
+
+type SessionRepository interface {
+	Create(ctx context.Context, session *session.Session) error
+	Update(ctx context.Context, session *session.Session) error
+	FindByUserID(ctx context.Context, userID int64) (*session.Session, error)
+}
 
 type UserRepository interface {
 	GetUserByID(ctx context.Context, id int64) (*user.Model, error)

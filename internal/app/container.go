@@ -19,11 +19,13 @@ import (
 	"wireguard-bot/internal/db/tx"
 	"wireguard-bot/internal/repository"
 	"wireguard-bot/internal/repository/server"
+	"wireguard-bot/internal/repository/session"
 	"wireguard-bot/internal/repository/user"
 	"wireguard-bot/internal/repository/users2servers"
-	server_handlers "wireguard-bot/internal/server-handlers"
+	serverhandlers "wireguard-bot/internal/server-handlers"
 	"wireguard-bot/internal/services"
 	configService "wireguard-bot/internal/services/config"
+	sessionService "wireguard-bot/internal/services/session"
 	userService "wireguard-bot/internal/services/user"
 	"wireguard-bot/internal/utils/dhcp"
 )
@@ -52,14 +54,16 @@ type Container struct {
 	configHandler  *bothandlers.ConfigHandler
 	qrHandler      *bothandlers.QRCodeHandler
 
-	rootHandler *server_handlers.RootHandler
+	rootHandler *serverhandlers.RootHandler
 
 	userRepo          repository.UserRepository
+	sessionRepo       repository.SessionRepository
 	serverRepo        repository.ServerRepository
 	users2serversRepo repository.Users2Servers
 
-	configService services.ConfigService
-	userService   services.UserService
+	configService  services.ConfigService
+	userService    services.UserService
+	sessionService services.SessionService
 
 	dhcp *dhcp.DHCP
 }
@@ -79,9 +83,9 @@ func (c *Container) Server() chi.Router {
 	return c.server
 }
 
-func (c *Container) RootHandler() *server_handlers.RootHandler {
+func (c *Container) RootHandler() *serverhandlers.RootHandler {
 	if c.rootHandler == nil {
-		c.rootHandler = server_handlers.NewRootHandler()
+		c.rootHandler = serverhandlers.NewRootHandler()
 	}
 
 	return c.rootHandler
@@ -150,6 +154,14 @@ func (c *Container) UserRepo() repository.UserRepository {
 	return c.userRepo
 }
 
+func (c *Container) SessionRepo() repository.SessionRepository {
+	if c.sessionRepo == nil {
+		c.sessionRepo = session.NewRepository(c.DB())
+	}
+
+	return c.sessionRepo
+}
+
 func (c *Container) ServerRepo() repository.ServerRepository {
 	if c.serverRepo == nil {
 		c.serverRepo = server.NewRepository(c.DB())
@@ -180,6 +192,14 @@ func (c *Container) UserService() services.UserService {
 	}
 
 	return c.userService
+}
+
+func (c *Container) SessionService() services.SessionService {
+	if c.sessionService == nil {
+		c.sessionService = sessionService.NewServiceSession(c.SessionRepo(), c.TxManager())
+	}
+
+	return c.sessionService
 }
 
 func (c *Container) LogCfg() config.LoggerConfig {

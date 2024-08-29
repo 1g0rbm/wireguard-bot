@@ -15,3 +15,7 @@ type UserService interface {
 	Create(ctx context.Context, serverID int, userID int64, username, firstName, lastname string) error
 	FindUser(ctx context.Context, userID int64) (*user.Model, error)
 }
+
+type SessionService interface {
+	CreateOrUpdate(ctx context.Context, userID int64) error
+}
