@@ -5,6 +5,7 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"wireguard-bot/internal/utils/msgs"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -65,7 +66,10 @@ type Container struct {
 	userService    services.UserService
 	sessionService services.SessionService
 
+	txtMsgChan chan *bot.SendMessageParams
+
 	dhcp *dhcp.DHCP
+	msgs *msgs.Sender
 }
 
 func newContainer() *Container {
@@ -281,6 +285,14 @@ func (c *Container) DefaultHandler() *bothandlers.DefaultHandler {
 	return c.defaultHandler
 }
 
+func (c *Container) MsgS() *msgs.Sender {
+	if c.msgs == nil {
+		c.msgs = msgs.NewSender(c.Bot(), c.TxtMsgChan())
+	}
+
+	return c.msgs
+}
+
 func (c *Container) DHCP() *dhcp.DHCP {
 	if c.dhcp == nil {
 		ctx := context.Background()
@@ -304,4 +316,16 @@ func (c *Container) DHCP() *dhcp.DHCP {
 	}
 
 	return c.dhcp
+}
+
+func (c *Container) TxtMsgChan() chan *bot.SendMessageParams {
+	if c.txtMsgChan == nil {
+		c.txtMsgChan = make(chan *bot.SendMessageParams)
+		c.getCloser().Add(func() error {
+			close(c.txtMsgChan)
+			return nil
+		})
+	}
+
+	return c.txtMsgChan
 }

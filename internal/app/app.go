@@ -41,6 +41,12 @@ func (a *App) Start(ctx context.Context) {
 
 	go a.bot.Start(ctx)
 
+	go func() {
+		if err := a.container.MsgS().Run(ctx); err != nil {
+			log.Fatalf("Sending message error: %s", err)
+		}
+	}()
+
 	srv := &http.Server{
 		Addr:         ":8080",
 		Handler:      a.server,
