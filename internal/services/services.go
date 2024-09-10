@@ -14,8 +14,10 @@ type ConfigService interface {
 type UserService interface {
 	Create(ctx context.Context, serverID int, userID int64, username, firstName, lastname string) error
 	FindUser(ctx context.Context, userID int64) (*user.Model, error)
+	LoginAdmin(ctx context.Context, username string) error
 }
 
 type SessionService interface {
 	CreateOrUpdate(ctx context.Context, userID int64) error
+	Check(ctx context.Context, userID int64) error
 }

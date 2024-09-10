@@ -27,6 +27,15 @@ func NewDHCP(mask, gatewayIP string, assignedIPs map[string]bool) (*DHCP, error)
 		return nil, fmt.Errorf("dhcp.new %w", err)
 	}
 
+	assignedIPs["10.0.0.11"] = true
+	assignedIPs["10.0.0.7"] = true
+	assignedIPs["10.0.0.8"] = true
+	assignedIPs["10.0.0.5"] = true
+	assignedIPs["10.0.0.4"] = true
+	assignedIPs["10.0.0.6"] = true
+	assignedIPs["10.0.0.10"] = true
+	assignedIPs["10.0.0.9"] = true
+
 	return &DHCP{
 		subnet:      subnet,
 		gatewayIP:   parsedGatewayIP,

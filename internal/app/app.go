@@ -63,7 +63,12 @@ func (a *App) Start(ctx context.Context) {
 }
 
 func (a *App) initServerHandlers() {
-	a.container.RootHandler().Register(a.server)
+	a.server.Group(func(r chi.Router) {
+		r.Use(a.container.authMiddleware.HandleFunc)
+		a.container.RootHandler().Register(r)
+	})
+
+	a.container.LoginHandler().Register(a.server)
 }
 
 func (a *App) initBotCommandHandlers() {

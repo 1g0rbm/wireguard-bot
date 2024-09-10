@@ -37,6 +37,14 @@ func NewRepository(db db.Client) *Repository {
 }
 
 func (r *Repository) GetUserByID(ctx context.Context, id int64) (*Model, error) {
+	return r.getUserBy(ctx, squirrel.Eq{colPk: id})
+}
+
+func (r *Repository) GetUserByUsername(ctx context.Context, username string) (*Model, error) {
+	return r.getUserBy(ctx, squirrel.Eq{colUsername: username})
+}
+
+func (r *Repository) getUserBy(ctx context.Context, eq squirrel.Eq) (*Model, error) {
 	q, args, err := squirrel.Select(
 		colPk,
 		colUsername,
@@ -51,10 +59,10 @@ func (r *Repository) GetUserByID(ctx context.Context, id int64) (*Model, error) 
 	).
 		PlaceholderFormat(squirrel.Dollar).
 		From(table).
-		Where(squirrel.Eq{colPk: id}).
+		Where(eq).
 		ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("user_repository.get_user_by_id: %w", err)
+		return nil, fmt.Errorf("user_repository.get_user_by: %w", err)
 	}
 
 	query := db.Query{
@@ -68,7 +76,7 @@ func (r *Repository) GetUserByID(ctx context.Context, id int64) (*Model, error) 
 			//nolint:nilnil
 			return nil, nil
 		}
-		return nil, fmt.Errorf("user_repository.get_user_by_id: %w", err)
+		return nil, fmt.Errorf("user_repository.get_user_by_username: %w", err)
 	}
 
 	return &model, nil

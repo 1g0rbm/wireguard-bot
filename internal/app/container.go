@@ -5,6 +5,7 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"wireguard-bot/internal/server-handlers/middleaware"
 	"wireguard-bot/internal/utils/msgs"
 
 	"github.com/go-chi/chi/v5"
@@ -55,7 +56,10 @@ type Container struct {
 	configHandler  *bothandlers.ConfigHandler
 	qrHandler      *bothandlers.QRCodeHandler
 
-	rootHandler *serverhandlers.RootHandler
+	rootHandler  *serverhandlers.RootHandler
+	loginHandler *serverhandlers.LoginHandler
+
+	authMiddleware *middleaware.Auth
 
 	userRepo          repository.UserRepository
 	sessionRepo       repository.SessionRepository
@@ -93,6 +97,22 @@ func (c *Container) RootHandler() *serverhandlers.RootHandler {
 	}
 
 	return c.rootHandler
+}
+
+func (c *Container) LoginHandler() *serverhandlers.LoginHandler {
+	if c.loginHandler == nil {
+		c.loginHandler = serverhandlers.NewLoginHandler(c.UserService(), c.Logger())
+	}
+
+	return c.loginHandler
+}
+
+func (c *Container) AuthMiddleware() *middleaware.Auth {
+	if c.authMiddleware == nil {
+		c.authMiddleware = middleaware.NewAuth(c.SessionService())
+	}
+
+	return c.authMiddleware
 }
 
 func (c *Container) Logger() *slog.Logger {
@@ -192,7 +212,12 @@ func (c *Container) ConfigService() services.ConfigService {
 
 func (c *Container) UserService() services.UserService {
 	if c.userService == nil {
-		c.userService = userService.NewServiceUser(c.UserRepo(), c.Users2ServersRepo(), c.TxManager(), c.DHCP())
+		c.userService = userService.NewServiceUser(
+			c.UserRepo(),
+			c.Users2ServersRepo(),
+			c.TxManager(), c.DHCP(),
+			c.TxtMsgChan(),
+		)
 	}
 
 	return c.userService

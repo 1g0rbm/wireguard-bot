@@ -17,6 +17,7 @@ type SessionRepository interface {
 
 type UserRepository interface {
 	GetUserByID(ctx context.Context, id int64) (*user.Model, error)
+	GetUserByUsername(ctx context.Context, username string) (*user.Model, error)
 	CreateUser(ctx context.Context, user *user.Model) error
 }
 
