@@ -10,6 +10,8 @@ import (
 	"wireguard-bot/internal/services"
 )
 
+const LoginPageUri = "/login"
+
 type LoginHandler struct {
 	userService services.UserService
 	logger      *slog.Logger
@@ -23,8 +25,8 @@ func NewLoginHandler(userService services.UserService, logger *slog.Logger) *Log
 }
 
 func (h *LoginHandler) Register(router chi.Router) {
-	router.Get("/login", h.handle)
-	router.Post("/login", h.handlePost)
+	router.Get(LoginPageUri, h.handle)
+	router.Post(LoginPageUri, h.handlePost)
 }
 
 func (h *LoginHandler) handle(w http.ResponseWriter, r *http.Request) {

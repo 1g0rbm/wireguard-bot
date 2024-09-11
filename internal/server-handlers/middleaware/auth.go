@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	serverhandlers "wireguard-bot/internal/server-handlers"
 	"wireguard-bot/internal/services"
 )
 
@@ -29,19 +30,19 @@ func (a *Auth) HandleFunc(next http.Handler) http.Handler {
 		if err != nil {
 			userID, err = strconv.ParseInt(r.URL.Query().Get(queryUserID), 10, 64)
 			if err != nil || userID == 0 {
-				http.Redirect(w, r, "/login", http.StatusFound)
+				http.Redirect(w, r, serverhandlers.LoginPageUri, http.StatusFound)
 				return
 			}
 		} else {
 			userID, err = strconv.ParseInt(cookie.Value, 10, 64)
 			if err != nil || userID == 0 {
-				http.Redirect(w, r, "/login", http.StatusFound)
+				http.Redirect(w, r, serverhandlers.LoginPageUri, http.StatusFound)
 				return
 			}
 		}
 
 		if err := a.sessionService.Check(r.Context(), userID); err != nil {
-			http.Redirect(w, r, "/login", http.StatusFound)
+			http.Redirect(w, r, serverhandlers.LoginPageUri, http.StatusFound)
 			return
 		}
 
