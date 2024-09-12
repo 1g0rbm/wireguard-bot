@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 var (
@@ -12,10 +14,10 @@ var (
 	ErrExpiredSession         = errors.New("session expired")
 )
 
-func (s *ServiceSession) Check(ctx context.Context, userID int64) error {
-	session, err := s.sessionRepo.FindByUserID(ctx, userID)
+func (s *ServiceSession) Check(ctx context.Context, sessionID uuid.UUID) error {
+	session, err := s.sessionRepo.FindByID(ctx, sessionID)
 	if err != nil {
-		return fmt.Errorf("session_service.check.find_by_user_id %w", err)
+		return fmt.Errorf("session_service.check.find_by_id %w", err)
 	}
 
 	if session == nil {
@@ -27,4 +29,21 @@ func (s *ServiceSession) Check(ctx context.Context, userID int64) error {
 	}
 
 	return nil
+}
+
+func (s *ServiceSession) CheckByUsername(ctx context.Context, username string) (*uuid.UUID, error) {
+	session, err := s.sessionRepo.FindByUsername(ctx, username)
+	if err != nil {
+		return nil, fmt.Errorf("session_service.check.find_by_username %w", err)
+	}
+
+	if session == nil {
+		return nil, ErrUserDoesNotHaveSession
+	}
+
+	if session.ExpiredAt.Before(time.Now()) {
+		return nil, ErrExpiredSession
+	}
+
+	return &session.ID, nil
 }

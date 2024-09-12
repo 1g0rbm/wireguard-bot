@@ -64,7 +64,7 @@ func (a *App) Start(ctx context.Context) {
 
 func (a *App) initServerHandlers() {
 	a.server.Group(func(r chi.Router) {
-		r.Use(a.container.authMiddleware.HandleFunc)
+		r.Use(a.container.AuthMiddleware().HandleFunc)
 		a.container.RootHandler().Register(r)
 	})
 
@@ -72,6 +72,10 @@ func (a *App) initServerHandlers() {
 }
 
 func (a *App) initBotCommandHandlers() {
+	a.bot.RegisterHandlerMatchFunc(
+		a.container.AdminLoginCallbackHandler().Match,
+		a.container.AdminLoginCallbackHandler().Handle,
+	)
 	a.bot.RegisterHandlerMatchFunc(a.container.StartHandler().Match, a.container.StartHandler().Handle)
 	a.bot.RegisterHandlerMatchFunc(a.container.ConfigHandler().Match, a.container.ConfigHandler().Handle)
 	a.bot.RegisterHandlerMatchFunc(a.container.QRCodeHandler().Match, a.container.QRCodeHandler().Handle)

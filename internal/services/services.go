@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"wireguard-bot/internal/repository/user"
 )
 
@@ -19,5 +21,6 @@ type UserService interface {
 
 type SessionService interface {
 	CreateOrUpdate(ctx context.Context, userID int64) error
-	Check(ctx context.Context, userID int64) error
+	Check(ctx context.Context, sessionID uuid.UUID) error
+	CheckByUsername(ctx context.Context, username string) (*uuid.UUID, error)
 }

@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"wireguard-bot/internal/repository/server"
 	"wireguard-bot/internal/repository/session"
 	"wireguard-bot/internal/repository/user"
@@ -12,7 +14,9 @@ import (
 type SessionRepository interface {
 	Create(ctx context.Context, session *session.Session) error
 	Update(ctx context.Context, session *session.Session) error
+	FindByID(ctx context.Context, sessionID uuid.UUID) (*session.Session, error)
 	FindByUserID(ctx context.Context, userID int64) (*session.Session, error)
+	FindByUsername(ctx context.Context, username string) (*session.Session, error)
 }
 
 type UserRepository interface {

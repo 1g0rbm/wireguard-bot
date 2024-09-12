@@ -10,7 +10,7 @@ import (
 	"wireguard-bot/internal/repository/session"
 )
 
-const sessionTTL = 24 * time.Hour
+const TTL = 24 * time.Hour
 
 func (s *ServiceSession) CreateOrUpdate(ctx context.Context, userID int64) error {
 	err := s.txManager.ReadCommited(ctx, func(ctx context.Context) error {
@@ -23,14 +23,14 @@ func (s *ServiceSession) CreateOrUpdate(ctx context.Context, userID int64) error
 			userSession = &session.Session{
 				ID:        uuid.New(),
 				UserID:    userID,
-				ExpiredAt: time.Now().Add(sessionTTL),
+				ExpiredAt: time.Now().Add(TTL),
 			}
 
 			if err := s.sessionRepo.Create(ctx, userSession); err != nil {
 				return fmt.Errorf("session_service.create_or_update %w", err)
 			}
 		} else {
-			userSession.ExpiredAt = time.Now().Add(sessionTTL)
+			userSession.ExpiredAt = time.Now().Add(TTL)
 			if err := s.sessionRepo.Update(ctx, userSession); err != nil {
 				return fmt.Errorf("session_service.create_or_update %w", err)
 			}

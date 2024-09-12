@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 
 	"wireguard-bot/internal/db"
 )
@@ -99,20 +100,29 @@ func (r *Repository) Update(ctx context.Context, session *Session) error {
 	return nil
 }
 
+func (r *Repository) FindByID(ctx context.Context, sessionID uuid.UUID) (*Session, error) {
+	return r.FindBy(ctx, squirrel.Eq{colPk: sessionID})
+}
+
 func (r *Repository) FindByUserID(ctx context.Context, userID int64) (*Session, error) {
+	return r.FindBy(ctx, squirrel.Eq{colUserID: userID})
+}
+
+func (r *Repository) FindByUsername(ctx context.Context, username string) (*Session, error) {
 	q, args, err := squirrel.
-		Select(colPk, colUserID, colExpiredAt, colCreatedAt, colUpdatedAt).
+		Select(table+"."+colPk, colUserID, table+"."+colExpiredAt, table+"."+colCreatedAt, table+"."+colUpdatedAt).
 		PlaceholderFormat(squirrel.Dollar).
 		From(table).
-		Where(squirrel.Eq{colUserID: userID}).
+		Join("users ON sessions.user_id = users.id").
+		Where(squirrel.Eq{"username": username}).
 		ToSql()
 
 	if err != nil {
-		return nil, fmt.Errorf("session_repository.find_one_by_user_id: %w", err)
+		return nil, fmt.Errorf("session_repository.find_one_by_username: %w", err)
 	}
 
 	query := db.Query{
-		Name:     "session_repository.find_one_by_user_id",
+		Name:     "session_repository.find_one_by_username",
 		QueryRaw: q,
 	}
 
@@ -122,7 +132,36 @@ func (r *Repository) FindByUserID(ctx context.Context, userID int64) (*Session, 
 			//nolint:nilnil
 			return nil, nil
 		}
-		return nil, fmt.Errorf("session_repository.find_one_by_user_id: %w", err)
+		return nil, fmt.Errorf("session_repository.find_one_by_username: %w", err)
+	}
+
+	return &model, nil
+}
+
+func (r *Repository) FindBy(ctx context.Context, eq squirrel.Eq) (*Session, error) {
+	q, args, err := squirrel.
+		Select(colPk, colUserID, colExpiredAt, colCreatedAt, colUpdatedAt).
+		PlaceholderFormat(squirrel.Dollar).
+		From(table).
+		Where(eq).
+		ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("session_repository.find_one_by: %w", err)
+	}
+
+	query := db.Query{
+		Name:     "session_repository.find_one_by",
+		QueryRaw: q,
+	}
+
+	var model Session
+	if err := r.db.DB().GetContext(ctx, &model, query, args...); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			//nolint:nilnil
+			return nil, nil
+		}
+		return nil, fmt.Errorf("session_repository.find_one_by: %w", err)
 	}
 
 	return &model, nil

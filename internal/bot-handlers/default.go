@@ -9,19 +9,22 @@ import (
 )
 
 type DefaultHandler struct {
+	adminLoginHandler *AdminLoginCallbackHandler
 }
 
-func NewDefaultHandler() *DefaultHandler {
-	return &DefaultHandler{}
+func NewDefaultHandler(adminLoginHandler *AdminLoginCallbackHandler) *DefaultHandler {
+	return &DefaultHandler{
+		adminLoginHandler: adminLoginHandler,
+	}
 }
 
-func (h *DefaultHandler) Match(_ *models.Update) bool {
-	return true
-}
-
-func (h *DefaultHandler) Handle(_ context.Context, _ *bot.Bot, update *models.Update) {
-	log.Printf(
-		"CahtId: %d\n Username:%s\n Text:%s\n",
-		update.Message.Chat.ID, update.Message.Chat.Username, update.Message.Text,
-	)
+func (h *DefaultHandler) Handle(ctx context.Context, bot *bot.Bot, update *models.Update) {
+	if h.adminLoginHandler.Match(update) {
+		h.adminLoginHandler.Handle(ctx, bot, update)
+	} else {
+		log.Printf(
+			"CahtId: %d\n Username:%s\n Text:%s\n",
+			update.Message.Chat.ID, update.Message.Chat.Username, update.Message.Text,
+		)
+	}
 }

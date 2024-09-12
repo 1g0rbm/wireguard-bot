@@ -5,8 +5,6 @@ import (
 	"log"
 	"log/slog"
 	"os"
-	"wireguard-bot/internal/server-handlers/middleaware"
-	"wireguard-bot/internal/utils/msgs"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -25,11 +23,13 @@ import (
 	"wireguard-bot/internal/repository/user"
 	"wireguard-bot/internal/repository/users2servers"
 	serverhandlers "wireguard-bot/internal/server-handlers"
+	"wireguard-bot/internal/server-handlers/middleaware"
 	"wireguard-bot/internal/services"
 	configService "wireguard-bot/internal/services/config"
 	sessionService "wireguard-bot/internal/services/session"
 	userService "wireguard-bot/internal/services/user"
 	"wireguard-bot/internal/utils/dhcp"
+	"wireguard-bot/internal/utils/msgs"
 )
 
 const (
@@ -51,10 +51,11 @@ type Container struct {
 	db        db.Client
 	txManager db.TxManager
 
-	startHandler   *bothandlers.StartHandler
-	defaultHandler *bothandlers.DefaultHandler
-	configHandler  *bothandlers.ConfigHandler
-	qrHandler      *bothandlers.QRCodeHandler
+	startHandler              *bothandlers.StartHandler
+	defaultHandler            *bothandlers.DefaultHandler
+	configHandler             *bothandlers.ConfigHandler
+	qrHandler                 *bothandlers.QRCodeHandler
+	adminLoginCallbackHandler *bothandlers.AdminLoginCallbackHandler
 
 	rootHandler  *serverhandlers.RootHandler
 	loginHandler *serverhandlers.LoginHandler
@@ -101,7 +102,7 @@ func (c *Container) RootHandler() *serverhandlers.RootHandler {
 
 func (c *Container) LoginHandler() *serverhandlers.LoginHandler {
 	if c.loginHandler == nil {
-		c.loginHandler = serverhandlers.NewLoginHandler(c.UserService(), c.Logger())
+		c.loginHandler = serverhandlers.NewLoginHandler(c.UserService(), c.sessionService, c.Logger())
 	}
 
 	return c.loginHandler
@@ -278,6 +279,14 @@ func (c *Container) Bot() *bot.Bot {
 	return c.bot
 }
 
+func (c *Container) AdminLoginCallbackHandler() *bothandlers.AdminLoginCallbackHandler {
+	if c.adminLoginCallbackHandler == nil {
+		c.adminLoginCallbackHandler = bothandlers.NewAdminLoginCallbackHandler(c.SessionService(), c.Logger())
+	}
+
+	return c.adminLoginCallbackHandler
+}
+
 func (c *Container) StartHandler() *bothandlers.StartHandler {
 	if c.startHandler == nil {
 		c.startHandler = bothandlers.NewStartHandler(c.UserService(), c.Logger())
@@ -304,7 +313,7 @@ func (c *Container) QRCodeHandler() *bothandlers.QRCodeHandler {
 
 func (c *Container) DefaultHandler() *bothandlers.DefaultHandler {
 	if c.defaultHandler == nil {
-		c.defaultHandler = bothandlers.NewDefaultHandler()
+		c.defaultHandler = bothandlers.NewDefaultHandler(c.AdminLoginCallbackHandler())
 	}
 
 	return c.defaultHandler
