@@ -57,8 +57,9 @@ type Container struct {
 	qrHandler                 *bothandlers.QRCodeHandler
 	adminLoginCallbackHandler *bothandlers.AdminLoginCallbackHandler
 
-	rootHandler  *serverhandlers.RootHandler
-	loginHandler *serverhandlers.LoginHandler
+	rootHandler      *serverhandlers.RootHandler
+	loginHandler     *serverhandlers.LoginHandler
+	usersListHandler *serverhandlers.UsersListHandler
 
 	authMiddleware *middleaware.Auth
 
@@ -98,6 +99,14 @@ func (c *Container) RootHandler() *serverhandlers.RootHandler {
 	}
 
 	return c.rootHandler
+}
+
+func (c *Container) UsersListHandler() *serverhandlers.UsersListHandler {
+	if c.usersListHandler == nil {
+		c.usersListHandler = serverhandlers.NewUsersListHandler(c.UserService(), c.Logger())
+	}
+
+	return c.usersListHandler
 }
 
 func (c *Container) LoginHandler() *serverhandlers.LoginHandler {

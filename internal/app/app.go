@@ -66,6 +66,7 @@ func (a *App) initServerHandlers() {
 	a.server.Group(func(r chi.Router) {
 		r.Use(a.container.AuthMiddleware().HandleFunc)
 		a.container.RootHandler().Register(r)
+		a.container.UsersListHandler().Register(r)
 	})
 
 	a.container.LoginHandler().Register(a.server)

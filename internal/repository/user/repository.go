@@ -128,3 +128,91 @@ func (r *Repository) CreateUser(ctx context.Context, user *Model) error {
 
 	return nil
 }
+
+func (r *Repository) List(ctx context.Context) ([]Model, error) {
+	q, args, err := squirrel.Select(
+		colPk,
+		colUsername,
+		colFirstname,
+		colLastname,
+		colRole,
+		colState,
+		colPublicKey,
+		colPrivateKey,
+		colCreatedAt,
+		colUpdatedAt,
+	).
+		PlaceholderFormat(squirrel.Dollar).
+		From(table).
+		ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("user_repository.list: %w", err)
+	}
+
+	query := db.Query{
+		Name:     "user_repository.list",
+		QueryRaw: q,
+	}
+
+	var users []Model
+	if err = r.db.DB().SelectContext(ctx, &users, query, args...); err != nil {
+		return nil, fmt.Errorf("user_repository.list: %w", err)
+	}
+
+	return users, nil
+}
+
+func (r *Repository) UpdateUser(ctx context.Context, user *Model) error {
+	q, args, err := squirrel.Update(table).
+		PlaceholderFormat(squirrel.Dollar).
+		SetMap(map[string]interface{}{
+			colFirstname:  user.FirstName,
+			colLastname:   user.LastName,
+			colRole:       user.Role,
+			colState:      user.State,
+			colPublicKey:  user.PublicKey,
+			colPrivateKey: user.PrivateKey,
+		}).
+		Where(squirrel.Eq{colPk: user.ID}).
+		ToSql()
+
+	if err != nil {
+		return fmt.Errorf("user_repository.update_user: %w", err)
+	}
+
+	query := db.Query{
+		Name:     "user_repository.update_user",
+		QueryRaw: q,
+	}
+
+	_, err = r.db.DB().ExecContext(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("user_repository.update_user: %w", err)
+	}
+
+	return nil
+}
+
+func (r *Repository) DeleteUser(ctx context.Context, id int64) error {
+	q, args, err := squirrel.Delete(table).
+		PlaceholderFormat(squirrel.Dollar).
+		Where(squirrel.Eq{colPk: id}).
+		ToSql()
+
+	if err != nil {
+		return fmt.Errorf("user_repository.delete_user: %w", err)
+	}
+
+	query := db.Query{
+		Name:     "user_repository.delete_user",
+		QueryRaw: q,
+	}
+
+	_, err = r.db.DB().ExecContext(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("user_repository.delete_user: %w", err)
+	}
+
+	return nil
+}
