@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"wireguard-bot/internal/utils"
 
 	"github.com/google/uuid"
 
@@ -17,7 +18,7 @@ type UserService interface {
 	Create(ctx context.Context, serverID int, userID int64, username, firstName, lastname string) error
 	FindUser(ctx context.Context, userID int64) (*user.Model, error)
 	LoginAdmin(ctx context.Context, username string) error
-	List(ctx context.Context) ([]user.Model, error)
+	List(ctx context.Context, opts ...utils.FilterOption) ([]user.Model, error)
 }
 
 type SessionService interface {

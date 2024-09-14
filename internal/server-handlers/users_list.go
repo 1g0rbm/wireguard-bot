@@ -4,11 +4,12 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
-	"wireguard-bot/internal/services"
 
 	"github.com/go-chi/chi/v5"
 
 	"wireguard-bot/internal/repository/user"
+	"wireguard-bot/internal/services"
+	userService "wireguard-bot/internal/services/user"
 )
 
 type UsersListHandler struct {
@@ -32,7 +33,7 @@ func (h *UsersListHandler) Register(router chi.Router) {
 }
 
 func (h *UsersListHandler) handle(w http.ResponseWriter, r *http.Request) {
-	users, err := h.userService.List(r.Context())
+	users, err := h.userService.List(r.Context(), userService.WithDisabled())
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "Get users list error.", "err", err)
 		http.Error(w, "Internal error.", http.StatusInternalServerError)

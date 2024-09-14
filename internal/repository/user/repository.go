@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"wireguard-bot/internal/utils"
 
 	"github.com/Masterminds/squirrel"
 
@@ -129,7 +130,7 @@ func (r *Repository) CreateUser(ctx context.Context, user *Model) error {
 	return nil
 }
 
-func (r *Repository) List(ctx context.Context) ([]Model, error) {
+func (r *Repository) List(ctx context.Context, filter utils.Filter) ([]Model, error) {
 	q, args, err := squirrel.Select(
 		colPk,
 		colUsername,
@@ -144,6 +145,8 @@ func (r *Repository) List(ctx context.Context) ([]Model, error) {
 	).
 		PlaceholderFormat(squirrel.Dollar).
 		From(table).
+		Where(filter.Eq).
+		Where(filter.Like).
 		ToSql()
 
 	if err != nil {

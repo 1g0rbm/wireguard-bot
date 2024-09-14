@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"wireguard-bot/internal/utils"
 
 	"github.com/google/uuid"
 
@@ -23,7 +24,7 @@ type UserRepository interface {
 	GetUserByID(ctx context.Context, id int64) (*user.Model, error)
 	GetUserByUsername(ctx context.Context, username string) (*user.Model, error)
 	CreateUser(ctx context.Context, user *user.Model) error
-	List(ctx context.Context) ([]user.Model, error)
+	List(ctx context.Context, filter utils.Filter) ([]user.Model, error)
 }
 
 type ServerRepository interface {
