@@ -60,6 +60,7 @@ type Container struct {
 	rootHandler      *serverhandlers.RootHandler
 	loginHandler     *serverhandlers.LoginHandler
 	usersListHandler *serverhandlers.UsersListHandler
+	userPageHandler  *serverhandlers.UserPageHandler
 
 	authMiddleware *middleaware.Auth
 
@@ -107,6 +108,14 @@ func (c *Container) UsersListHandler() *serverhandlers.UsersListHandler {
 	}
 
 	return c.usersListHandler
+}
+
+func (c *Container) UserPageHandler() *serverhandlers.UserPageHandler {
+	if c.userPageHandler == nil {
+		c.userPageHandler = serverhandlers.NewUserPageHandler(c.Users2ServersRepo(), c.Logger())
+	}
+
+	return c.userPageHandler
 }
 
 func (c *Container) LoginHandler() *serverhandlers.LoginHandler {

@@ -2,11 +2,11 @@ package services
 
 import (
 	"context"
-	"wireguard-bot/internal/utils"
 
 	"github.com/google/uuid"
 
 	"wireguard-bot/internal/repository/user"
+	"wireguard-bot/internal/utils"
 )
 
 type ConfigService interface {

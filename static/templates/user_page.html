@@ -1,0 +1,52 @@
+{{ define "title" }}User's list{{ end }}
+
+{{ define "content" }}
+<div class="row">
+    <div class="col-md-6">
+        <h3>User Information</h3>
+        <ul>
+            <li><strong>User ID:</strong> {{ .User.UserID }}</li>
+            <li><strong>Username:</strong> {{ .User.Username }}</li>
+            <li><strong>First Name:</strong> {{ .User.FirstName }}</li>
+            <li><strong>Last Name:</strong> {{ .User.LastName }}</li>
+            <li><strong>Role:</strong> {{ .User.Role }}</li>
+            <li><strong>User Public Key:</strong> {{ .User.UserPublicKey }}</li>
+            <li><strong>User Private Key:</strong> {{ .User.UserPrivateKey }}</li>
+            <li><strong>State:</strong> {{ .User.State }}</li>
+            <li><strong>User Address:</strong> {{ .User.UserAddress }}</li>
+        </ul>
+    </div>
+    <div class="col-md-6">
+        <h3>Server Information</h3>
+        <ul>
+            <li><strong>Server ID:</strong> {{ .User.ServerID }}</li>
+            <li><strong>Server Name:</strong> {{ .User.ServerName }}</li>
+            <li><strong>Server Address:</strong> {{ .User.ServerAddress }}</li>
+            <li><strong>Server Public Key:</strong> {{ .User.ServerPublicKey }}</li>
+            <li><strong>Server Private Key:</strong> {{ .User.ServerPrivateKey }}</li>
+        </ul>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <h3>Configuration</h3>
+<textarea id="configText" class="form-control" rows="5" readonly>
+[Peer]
+#{{ .User.Username }}
+PublicKey = {{ .User.UserPublicKey }}
+AllowedIPs = {{ .User.UserAddress }}/32
+</textarea>
+        <button id="copyButton" class="btn btn-outline-primary mt-2">🗐</button>
+    </div>
+</div>
+
+<script>
+    document.getElementById('copyButton').addEventListener('click', function() {
+        var configText = document.getElementById('configText');
+        configText.select();
+        configText.setSelectionRange(0, 99999); // For mobile devices
+        document.execCommand('copy');
+        alert('Configuration copied to clipboard!');
+    });
+</script>
+{{ end }}

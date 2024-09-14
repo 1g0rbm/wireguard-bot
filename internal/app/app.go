@@ -67,6 +67,7 @@ func (a *App) initServerHandlers() {
 		r.Use(a.container.AuthMiddleware().HandleFunc)
 		a.container.RootHandler().Register(r)
 		a.container.UsersListHandler().Register(r)
+		a.container.UserPageHandler().Register(r)
 	})
 
 	a.container.LoginHandler().Register(a.server)
