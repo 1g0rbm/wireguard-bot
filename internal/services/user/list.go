@@ -3,11 +3,11 @@ package user
 import (
 	"context"
 	"fmt"
-	"wireguard-bot/internal/utils"
 
 	"github.com/Masterminds/squirrel"
 
 	"wireguard-bot/internal/repository/user"
+	"wireguard-bot/internal/utils"
 )
 
 func WithEnabled() utils.FilterOption {
@@ -24,7 +24,7 @@ func WithDisabled() utils.FilterOption {
 
 func WithUsername(username string) utils.FilterOption {
 	return func(f utils.Filter) {
-		f.Like["username"] = username
+		f.Like["username"] = username + "%"
 	}
 }
 
