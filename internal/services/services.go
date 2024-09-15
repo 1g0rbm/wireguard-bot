@@ -19,6 +19,7 @@ type UserService interface {
 	FindUser(ctx context.Context, userID int64) (*user.Model, error)
 	LoginAdmin(ctx context.Context, username string) error
 	List(ctx context.Context, opts ...utils.FilterOption) ([]user.Model, error)
+	Enable(ctx context.Context, userID int64) error
 }
 
 type SessionService interface {

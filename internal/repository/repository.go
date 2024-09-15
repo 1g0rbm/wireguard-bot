@@ -25,6 +25,7 @@ type UserRepository interface {
 	GetUserByUsername(ctx context.Context, username string) (*user.Model, error)
 	CreateUser(ctx context.Context, user *user.Model) error
 	List(ctx context.Context, filter utils.Filter) ([]user.Model, error)
+	UpdateUser(ctx context.Context, user *user.Model) error
 }
 
 type ServerRepository interface {

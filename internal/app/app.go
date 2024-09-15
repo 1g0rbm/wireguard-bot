@@ -68,6 +68,7 @@ func (a *App) initServerHandlers() {
 		a.container.RootHandler().Register(r)
 		a.container.UsersListHandler().Register(r)
 		a.container.UserPageHandler().Register(r)
+		a.container.UserEnableHandler().Register(r)
 	})
 
 	a.container.LoginHandler().Register(a.server)

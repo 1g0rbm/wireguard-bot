@@ -36,7 +36,10 @@
 PublicKey = {{ .User.UserPublicKey }}
 AllowedIPs = {{ .User.UserAddress }}/32
 </textarea>
-        <button id="copyButton" class="btn btn-outline-primary mt-2">🗐</button>
+        <form method="POST" action="/user/enable/{{ .User.UserID }}">
+            <button id="copyButton" class="btn btn-outline-primary mt-2">🗐</button>
+            <button type="submit" class="btn btn-outline-success mt-2">💩</button>
+        </form>
     </div>
 </div>
 
