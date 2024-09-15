@@ -1,7 +1,36 @@
 {{ define "title" }}Login{{ end }}
 
 {{ define "content" }}
-    <div class="row">
-
+<div class="row">
+    <div class="w-25 m-auto">
+        {{ if .Errors }}
+        <div class="alert alert-danger">
+            <ul>
+                {{ range .Errors }}
+                <li>{{ . }}</li>
+                {{ end }}
+            </ul>
+        </div>
+        {{ end }}
+        {{ if .MessageSent }}
+        <div class="alert alert-success">
+            Чтобы убедиться, что ты тот, за кого себя выдаешь, тебе было отправленно сообщение.
+            Действуй по интсрукции.
+        </div>
+        {{ end }}
+        <form method="POST">
+            <div class="form-floating">
+                <input type="text"
+                       name="username"
+                       class="form-control"
+                       id="username"
+                       placeholder="Введите username"
+                       value="{{.Username}}"
+                >
+                <label for="username" class="form-label">Username</label>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 mt-3">Войти</button>
+        </form>
     </div>
+</div>
 {{ end }}
