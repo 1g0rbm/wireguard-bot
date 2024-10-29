@@ -3,6 +3,8 @@ package user
 import (
 	"context"
 	"fmt"
+	"github.com/go-telegram/bot/models"
+	"wireguard-bot/internal/utils"
 
 	"github.com/go-telegram/bot"
 
@@ -20,10 +22,18 @@ func (u *ServiceUser) Enable(ctx context.Context, userID int64) error {
 		return fmt.Errorf("user_service.enable %w", err)
 	}
 
+	msg, err := utils.Render(
+		"static/messages/user_enabled.tmp",
+		map[string]string{"Username": userModel.Username},
+	)
+	if err != nil {
+		return fmt.Errorf("user_service.enable.message_render %w", err)
+	}
+
 	u.outTxtMsgChan <- &bot.SendMessageParams{
-		ChatID: userModel.ID,
-		Text: "Активировано. Можешь юзать впн!\n" +
-			"!!! Если снизу не появились кнопки для получения конфигурации, введи команду /start еще раз.",
+		ChatID:    userModel.ID,
+		Text:      string(msg),
+		ParseMode: models.ParseModeMarkdown,
 	}
 
 	return nil
