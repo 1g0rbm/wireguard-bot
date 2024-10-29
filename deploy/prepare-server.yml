@@ -1,0 +1,29 @@
+---
+- name: Подготовка сервера
+  hosts: all
+  become: yes
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Создание директории проекта
+      file:
+        path: "{{ project_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Создание docker-compose.yml из шаблона
+      template:
+        src: templates/docker-compose.yml.j2
+        dest: "{{ project_dir }}/docker-compose.yml"
+
+    - name: Создание .env файла из шаблона
+      template:
+        src: templates/.env.j2
+        dest: "{{ project_dir }}/.env"
+
+    - name: Логин в приватный Docker Registry
+      command: docker login -u "{{ registry_username }}" -p "{{ registry_password }}" {{ registry }}
+      register: login_result
+      changed_when: login_result.rc == 0

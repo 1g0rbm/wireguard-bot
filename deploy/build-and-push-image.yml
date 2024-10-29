@@ -1,0 +1,53 @@
+---
+- name: Сборка и пуш Docker-образа
+  hosts: localhost
+  become: no
+  vars_files:
+    - vars.yml
+
+  vars:
+    app_image_name: "{{ registry }}/app"
+    migrator_image_name: "{{ registry }}/migrator"
+    image_tag: "latest"
+
+  tasks:
+    - name: Вход в Docker Registry
+      docker_login:
+        registry: "{{ registry }}"
+        username: "{{ registry_username }}"
+        password: "{{ registry_password }}"
+
+    - name: Удалить существующий образ приложения
+      docker_image:
+        name: "{{ app_image_name }}"
+        tag: "{{ image_tag }}"
+        state: absent
+
+    - name: Удалить существующий образ мигратора
+      docker_image:
+        name: "{{ migrator_image_name }}"
+        tag: "{{ image_tag }}"
+        state: absent
+
+    - name: Build and push an app image
+      docker_image:
+        name: "{{ app_image_name }}"
+        tag: "{{ image_tag }}"
+        build:
+          path: "{{ playbook_dir }}/.."
+          dockerfile: docker/app/Dockerfile
+          nocache: yes
+        push: yes
+        source: build
+
+    - name: Build and push a migrator image
+      docker_image:
+        name: "{{ migrator_image_name }}"
+        tag: "{{ image_tag }}"
+        build:
+          path: "{{ playbook_dir }}/.."
+          dockerfile: docker/migrations/Dockerfile
+          nocache: yes
+        push: yes
+        source: build
+

@@ -1,0 +1,17 @@
+---
+- name: Деплой приложения
+  hosts: all  # Замените на ваше целевое хост имя
+  become: yes
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Запуск приложения
+      shell: |
+        cd {{ project_dir }}
+        docker-compose up -d
+
+    - name: Запуск миграций
+      shell: |
+        cd {{ project_dir }}
+        docker-compose run --rm migrator up

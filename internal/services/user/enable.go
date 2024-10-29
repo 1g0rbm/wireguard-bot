@@ -22,7 +22,8 @@ func (u *ServiceUser) Enable(ctx context.Context, userID int64) error {
 
 	u.outTxtMsgChan <- &bot.SendMessageParams{
 		ChatID: userModel.ID,
-		Text:   "Активировано. Можешь юзать впн!",
+		Text: "Активировано. Можешь юзать впн!\n" +
+			"!!! Если снизу не появились кнопки для получения конфигурации, введи команду /start еще раз.",
 	}
 
 	return nil

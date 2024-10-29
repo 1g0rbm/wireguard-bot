@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  app:
+    image: {{ registry }}/app:latest
+    ports:
+      - "8080:8080"
+    env_file: .env
+    depends_on:
+      - db
+      - migrator
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: "{{ db_name }}"
+      POSTGRES_USER: "{{ db_user }}"
+      POSTGRES_PASSWORD: "{{ db_password }}"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  migrator:
+    image: {{ registry }}/migrator:latest
+    environment:
+      DATABASE_URL: "postgres://{{ db_user }}:{{ db_password }}@db:5432/{{ db_name }}?sslmode=disable"
+    depends_on:
+      - db
+
+volumes:
+  pg_data:

@@ -1,0 +1,6 @@
+all:
+  hosts:
+    pet.vpn_prod:
+      ansible_host: 195.133.46.226
+      ansible_user: m1g0rb89
+      registry_user: "admin"

@@ -8,10 +8,10 @@ RUN apk update && \
 ADD https://github.com/pressly/goose/releases/download/v3.14.0/goose_linux_x86_64 /bin/goose
 RUN chmod +x /bin/goose
 
-WORKDIR /root
+WORKDIR /app
 
-ADD migrations.sh .
+COPY . .
 
-RUN chmod +x migrations.sh
+RUN chmod +x ./docker/migrations/migrations.sh
 
-ENTRYPOINT ["bash", "migrations.sh"]
+ENTRYPOINT ["bash", "./docker/migrations/migrations.sh"]

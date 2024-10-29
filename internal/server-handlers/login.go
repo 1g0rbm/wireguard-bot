@@ -61,7 +61,7 @@ func (h *LoginHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 			Value:    sessID.String(),
 			HttpOnly: true,
 			Path:     "/",
-			Secure:   true,
+			Secure:   false,
 			Expires:  time.Now().Add(session.TTL),
 		})
 
