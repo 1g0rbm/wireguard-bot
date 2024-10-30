@@ -46,7 +46,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 				ParseMode: models.ParseModeMarkdown,
 			})
 			if err != nil {
-				return fmt.Errorf("handler_start.handle %w", err)
+				return fmt.Errorf("handler_start.handle.greetings_message %w", err)
 			}
 			return nil
 		},
@@ -61,7 +61,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 				ParseMode: models.ParseModeMarkdown,
 			})
 			if err != nil {
-				return fmt.Errorf("handler_start.handle %w", err)
+				return fmt.Errorf("handler_start.handle.about_message %w", err)
 			}
 			return nil
 		},
@@ -76,7 +76,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 			func(msg []byte) error {
 				_, err := b.SendMessage(ctx, &bot.SendMessageParams{ChatID: update.Message.Chat.ID, Text: string(msg)})
 				if err != nil {
-					return fmt.Errorf("handler_start.handle %w", err)
+					return fmt.Errorf("handler_start.handle.user_model.something_wrong_message %w", err)
 				}
 				return nil
 			},
@@ -105,7 +105,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 			func(msg []byte) error {
 				_, err := b.SendMessage(ctx, &bot.SendMessageParams{ChatID: update.Message.Chat.ID, Text: string(msg)})
 				if err != nil {
-					return fmt.Errorf("handler_start.handle %w", err)
+					return fmt.Errorf("handler_start.handle.user_create.something_wrong_message %w", err)
 				}
 				return nil
 			},
@@ -127,7 +127,7 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 				ParseMode: models.ParseModeMarkdown,
 			})
 			if err != nil {
-				return fmt.Errorf("handler_start.handle %w", err)
+				return fmt.Errorf("handler_start.handle.user_created %w", err)
 			}
 			return nil
 		},
@@ -159,7 +159,7 @@ func handleEnabledUser(ctx context.Context, b *bot.Bot, update *models.Update) {
 				ReplyMarkup: keyboard,
 			})
 			if err != nil {
-				return fmt.Errorf("handler_start.handle %w", err)
+				return fmt.Errorf("handler_start.handle.already_enabled_message %w", err)
 			}
 			return nil
 		},
