@@ -3,12 +3,12 @@ package user
 import (
 	"context"
 	"fmt"
-	"github.com/go-telegram/bot/models"
-	"wireguard-bot/internal/utils"
 
 	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 
 	"wireguard-bot/internal/repository/user"
+	"wireguard-bot/internal/utils"
 )
 
 func (u *ServiceUser) Enable(ctx context.Context, userID int64) error {
