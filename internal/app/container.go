@@ -348,7 +348,7 @@ func (c *Container) DefaultHandler() *bothandlers.DefaultHandler {
 
 func (c *Container) MsgS() *msgs.Sender {
 	if c.msgs == nil {
-		c.msgs = msgs.NewSender(c.Bot(), c.TxtMsgChan())
+		c.msgs = msgs.NewSender(c.Bot(), c.Logger(), c.TxtMsgChan())
 	}
 
 	return c.msgs
