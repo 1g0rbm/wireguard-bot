@@ -41,9 +41,8 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 		},
 		func(msg []byte) error {
 			_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID:    update.Message.Chat.ID,
-				Text:      string(msg),
-				ParseMode: models.ParseModeMarkdown,
+				ChatID: update.Message.Chat.ID,
+				Text:   string(msg),
 			})
 			if err != nil {
 				return fmt.Errorf("handler_start.handle.greetings_message %w", err)
