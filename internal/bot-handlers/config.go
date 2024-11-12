@@ -3,6 +3,7 @@ package bothandlers
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 
@@ -58,6 +59,11 @@ func (h *ConfigHandler) Handle(ctx context.Context, b *bot.Bot, update *models.U
 	})
 	if err != nil {
 		log.Fatalf("Sending message error.\nerr: %v \n", err)
+	}
+
+	confName := update.Message.Chat.Username
+	if confName == "" {
+		confName = fmt.Sprintf("%d", update.Message.Chat.ID)
 	}
 
 	document := &models.InputFileUpload{
