@@ -67,7 +67,7 @@ func (h *ConfigHandler) Handle(ctx context.Context, b *bot.Bot, update *models.U
 	}
 
 	document := &models.InputFileUpload{
-		Filename: update.Message.Chat.Username + ".conf",
+		Filename: confName + ".conf",
 		Data:     bytes.NewReader(cfgBytes),
 	}
 	_, err = b.SendDocument(ctx, &bot.SendDocumentParams{
