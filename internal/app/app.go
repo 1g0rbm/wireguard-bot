@@ -36,7 +36,6 @@ func NewApp() *App {
 }
 
 func (a *App) Start(ctx context.Context) {
-	a.initBotCommandHandlers()
 	a.initServerHandlers()
 
 	go a.bot.Start(ctx)
@@ -45,6 +44,11 @@ func (a *App) Start(ctx context.Context) {
 		if err := a.container.MsgS().Run(ctx); err != nil {
 			log.Fatalf("Sending message error: %s", err)
 		}
+	}()
+
+	go func() {
+		dispatcher, _ := a.container.TgDispatcher()
+		dispatcher.Run(ctx, a.bot)
 	}()
 
 	srv := &http.Server{
@@ -72,14 +76,4 @@ func (a *App) initServerHandlers() {
 	})
 
 	a.container.LoginHandler().Register(a.server)
-}
-
-func (a *App) initBotCommandHandlers() {
-	a.bot.RegisterHandlerMatchFunc(
-		a.container.AdminLoginCallbackHandler().Match,
-		a.container.AdminLoginCallbackHandler().Handle,
-	)
-	a.bot.RegisterHandlerMatchFunc(a.container.StartHandler().Match, a.container.StartHandler().Handle)
-	a.bot.RegisterHandlerMatchFunc(a.container.ConfigHandler().Match, a.container.ConfigHandler().Handle)
-	a.bot.RegisterHandlerMatchFunc(a.container.QRCodeHandler().Match, a.container.QRCodeHandler().Handle)
 }

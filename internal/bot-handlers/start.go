@@ -3,92 +3,43 @@ package bothandlers
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 
-	"wireguard-bot/internal/repository/user"
 	"wireguard-bot/internal/services"
 	"wireguard-bot/internal/utils"
+	"wireguard-bot/internal/utils/dispatcher"
 )
 
 const startCommand = "/start"
 
 type StartHandler struct {
+	dispatChan  chan<- dispatcher.Sendable
 	userService services.UserService
-	logger      *slog.Logger
 }
 
-func NewStartHandler(userService services.UserService, logger *slog.Logger) *StartHandler {
+func NewStartHandler(d chan<- dispatcher.Sendable, s services.UserService) *StartHandler {
 	return &StartHandler{
-		userService: userService,
-		logger:      logger,
+		dispatChan:  d,
+		userService: s,
 	}
 }
 
 func (h *StartHandler) Match(update *models.Update) bool {
+	if update.Message == nil {
+		return false
+	}
+
 	return update.Message.Text == startCommand
 }
 
-func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
-	utils.SendMessage(
-		func() ([]byte, error) {
-			return utils.Render(
-				"static/messages/greetings.tmp",
-				map[string]string{"Username": update.Message.Chat.Username},
-			)
-		},
-		func(msg []byte) error {
-			_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID: update.Message.Chat.ID,
-				Text:   string(msg),
-			})
-			if err != nil {
-				return fmt.Errorf("handler_start.handle.greetings_message %w", err)
-			}
-			return nil
-		},
-	)
-
-	utils.SendMessage(
-		func() ([]byte, error) { return utils.Render("static/messages/about.tmp", nil) },
-		func(msg []byte) error {
-			_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID:    update.Message.Chat.ID,
-				Text:      string(msg),
-				ParseMode: models.ParseModeMarkdown,
-			})
-			if err != nil {
-				return fmt.Errorf("handler_start.handle.about_message %w", err)
-			}
-			return nil
-		},
-	)
-
-	userModel, err := h.userService.FindUser(ctx, update.Message.Chat.ID)
-	if err != nil {
-		utils.SendMessage(
-			func() ([]byte, error) {
-				return utils.Render("static/messages/something_went_wrong.tmp", nil)
-			},
-			func(msg []byte) error {
-				_, err := b.SendMessage(ctx, &bot.SendMessageParams{ChatID: update.Message.Chat.ID, Text: string(msg)})
-				if err != nil {
-					return fmt.Errorf("handler_start.handle.user_model.something_wrong_message %w", err)
-				}
-				return nil
-			},
-		)
-		return
+func (h *StartHandler) Handle(ctx context.Context, update *models.Update) error {
+	if err := h.handleGreetings(update); err != nil {
+		return fmt.Errorf("handler_start.handle.greetings %w", err)
 	}
 
-	if userModel != nil && userModel.StateIs(user.EnabledState) {
-		handleEnabledUser(ctx, b, update)
-		return
-	}
-
-	err = h.userService.Create(
+	userModel, err := h.userService.GetOrCreate(
 		ctx,
 		0,
 		update.Message.Chat.ID,
@@ -97,43 +48,42 @@ func (h *StartHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Up
 		update.Message.Chat.LastName,
 	)
 	if err != nil {
-		utils.SendMessage(
-			func() ([]byte, error) {
-				return utils.Render("static/messages/something_went_wrong.tmp", nil)
-			},
-			func(msg []byte) error {
-				_, err := b.SendMessage(ctx, &bot.SendMessageParams{ChatID: update.Message.Chat.ID, Text: string(msg)})
-				if err != nil {
-					return fmt.Errorf("handler_start.handle.user_create.something_wrong_message %w", err)
-				}
-				return nil
-			},
-		)
-		return
+		return fmt.Errorf("handler_start.handle.get_or_create %w", err)
 	}
 
-	utils.SendMessage(
-		func() ([]byte, error) {
-			return utils.Render(
-				"static/messages/user_created.tmp",
-				map[string]string{"Username": update.Message.Chat.Username},
-			)
-		},
-		func(msg []byte) error {
-			_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID:    update.Message.Chat.ID,
-				Text:      string(msg),
-				ParseMode: models.ParseModeMarkdown,
-			})
-			if err != nil {
-				return fmt.Errorf("handler_start.handle.user_created %w", err)
-			}
-			return nil
-		},
-	)
+	if userModel.Enabled() {
+		err = h.handleEnabledUser(update)
+	} else {
+		err = h.handleNewUser(update)
+	}
+
+	if err != nil {
+		return fmt.Errorf("handler_start.handle %w", err)
+	}
+
+	return nil
 }
 
-func handleEnabledUser(ctx context.Context, b *bot.Bot, update *models.Update) {
+func (h *StartHandler) handleNewUser(update *models.Update) error {
+	msg, err := utils.Render(
+		"static/messages/user_created.tmp",
+		map[string]string{"Username": update.Message.Chat.Username},
+	)
+	if err != nil {
+		return fmt.Errorf("handler_start.create_user.render_user_created %w", err)
+	}
+	h.dispatChan <- dispatcher.TextMessage{
+		Params: &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
+			Text:      string(msg),
+			ParseMode: models.ParseModeMarkdown,
+		},
+	}
+
+	return nil
+}
+
+func (h *StartHandler) handleEnabledUser(update *models.Update) error {
 	keyboard := &models.ReplyKeyboardMarkup{
 		Keyboard: [][]models.KeyboardButton{
 			{{Text: configCommand}},
@@ -143,24 +93,51 @@ func handleEnabledUser(ctx context.Context, b *bot.Bot, update *models.Update) {
 		OneTimeKeyboard: false,
 	}
 
-	utils.SendMessage(
-		func() ([]byte, error) {
-			return utils.Render(
-				"static/messages/user_already_enabled.tmp",
-				map[string]string{"Username": update.Message.Chat.Username},
-			)
-		},
-		func(msg []byte) error {
-			_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID:      update.Message.Chat.ID,
-				Text:        string(msg),
-				ParseMode:   models.ParseModeMarkdown,
-				ReplyMarkup: keyboard,
-			})
-			if err != nil {
-				return fmt.Errorf("handler_start.handle.already_enabled_message %w", err)
-			}
-			return nil
-		},
+	msg, err := utils.Render(
+		"static/messages/user_already_enabled.tmp",
+		map[string]string{"Username": update.Message.Chat.Username},
 	)
+	if err != nil {
+		return fmt.Errorf("handler_start.handle_enabled_user.render %w", err)
+	}
+	h.dispatChan <- dispatcher.TextMessage{
+		Params: &bot.SendMessageParams{
+			ChatID:      update.Message.Chat.ID,
+			Text:        string(msg),
+			ParseMode:   models.ParseModeMarkdown,
+			ReplyMarkup: keyboard,
+		},
+	}
+
+	return nil
+}
+
+func (h *StartHandler) handleGreetings(update *models.Update) error {
+	msg, err := utils.Render(
+		"static/messages/greetings.tmp",
+		map[string]string{"Username": update.Message.Chat.Username},
+	)
+	if err != nil {
+		return fmt.Errorf("handler_start.greetings.render_greetings %w", err)
+	}
+	h.dispatChan <- dispatcher.TextMessage{
+		Params: &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   string(msg),
+		},
+	}
+
+	msg, err = utils.Render("static/messages/about.tmp", nil)
+	if err != nil {
+		return fmt.Errorf("handler_start.greetings.render_about_message %w", err)
+	}
+	h.dispatChan <- dispatcher.TextMessage{
+		Params: &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
+			Text:      string(msg),
+			ParseMode: models.ParseModeMarkdown,
+		},
+	}
+
+	return nil
 }

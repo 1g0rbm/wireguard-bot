@@ -2,29 +2,57 @@ package bothandlers
 
 import (
 	"context"
-	"log"
+	"log/slog"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+
+	"wireguard-bot/internal/utils"
+	"wireguard-bot/internal/utils/dispatcher"
 )
 
-type DefaultHandler struct {
-	adminLoginHandler *AdminLoginCallbackHandler
+type Handler interface {
+	Match(update *models.Update) bool
+	Handle(ctx context.Context, update *models.Update) error
 }
 
-func NewDefaultHandler(adminLoginHandler *AdminLoginCallbackHandler) *DefaultHandler {
+type DefaultHandler struct {
+	handlers   []Handler
+	dispatChan chan<- dispatcher.Sendable
+	logger     *slog.Logger
+}
+
+func NewDefaultHandler(ch chan<- dispatcher.Sendable, h []Handler, l *slog.Logger) *DefaultHandler {
 	return &DefaultHandler{
-		adminLoginHandler: adminLoginHandler,
+		handlers:   h,
+		dispatChan: ch,
+		logger:     l,
 	}
 }
 
-func (h *DefaultHandler) Handle(ctx context.Context, bot *bot.Bot, update *models.Update) {
-	if h.adminLoginHandler.Match(update) {
-		h.adminLoginHandler.Handle(ctx, bot, update)
-	} else {
-		log.Printf(
-			"CahtId: %d\n Username:%s\n Text:%s\n",
-			update.Message.Chat.ID, update.Message.Chat.Username, update.Message.Text,
-		)
+func (dh *DefaultHandler) Handle(ctx context.Context, _ *bot.Bot, update *models.Update) {
+	matched := false
+	for _, h := range dh.handlers {
+		if h.Match(update) {
+			matched = true
+			if err := h.Handle(ctx, update); err != nil {
+				dh.logger.ErrorContext(ctx, "Handling message error.", "err", err)
+				msg, err := utils.Render("static/messages/something_went_wrong.tmp", nil)
+				if err != nil {
+					msg = []byte("a")
+				}
+
+				dh.dispatChan <- dispatcher.TextMessage{
+					Params: &bot.SendMessageParams{
+						ChatID: update.Message.Chat.ID,
+						Text:   string(msg),
+					},
+				}
+			}
+		}
+	}
+
+	if !matched {
+		dh.logger.WarnContext(ctx, "Wrong command.", "msg", update)
 	}
 }

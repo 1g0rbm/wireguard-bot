@@ -3,28 +3,26 @@ package bothandlers
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 
 	"wireguard-bot/internal/services"
 	"wireguard-bot/internal/utils"
+	"wireguard-bot/internal/utils/dispatcher"
 )
 
 const AdminLoginCallback = "callback.admin_login"
 
 type AdminLoginCallbackHandler struct {
+	dispatChan     chan<- dispatcher.Sendable
 	sessionService services.SessionService
-	logger         *slog.Logger
 }
 
-func NewAdminLoginCallbackHandler(
-	sessionService services.SessionService, logger *slog.Logger,
-) *AdminLoginCallbackHandler {
+func NewAdminLoginCallbackHandler(d chan<- dispatcher.Sendable, s services.SessionService) *AdminLoginCallbackHandler {
 	return &AdminLoginCallbackHandler{
-		sessionService: sessionService,
-		logger:         logger,
+		dispatChan:     d,
+		sessionService: s,
 	}
 }
 
@@ -36,38 +34,24 @@ func (h *AdminLoginCallbackHandler) Match(update *models.Update) bool {
 	return update.CallbackQuery.Data == AdminLoginCallback
 }
 
-func (h *AdminLoginCallbackHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
+func (h *AdminLoginCallbackHandler) Handle(ctx context.Context, update *models.Update) error {
 	chatID := update.CallbackQuery.Message.Message.Chat.ID
 	if err := h.sessionService.CreateOrUpdate(ctx, chatID); err != nil {
-		utils.SendMessage(
-			func() ([]byte, error) {
-				return utils.Render("static/messages/something_went_wrong.tmp", nil)
-			},
-			func(msg []byte) error {
-				_, err := b.SendMessage(ctx, &bot.SendMessageParams{ChatID: update.Message.Chat.ID, Text: string(msg)})
-				if err != nil {
-					return fmt.Errorf("admin_login.handle %w", err)
-				}
-				return nil
-			},
-		)
-		return
+		return fmt.Errorf("handler_admin_login.handle.create_session %w", err)
 	}
 
-	utils.SendMessage(
-		func() ([]byte, error) {
-			return utils.Render("static/messages/login_admin.tmp", nil)
+	msg, err := utils.Render("static/messages/login_admin.tmp", nil)
+	if err != nil {
+		return fmt.Errorf("handler_admin_login.handle.login_admin_render %w", err)
+	}
+
+	h.dispatChan <- dispatcher.EditMessage{
+		Params: &bot.EditMessageTextParams{
+			ChatID:    chatID,
+			MessageID: update.CallbackQuery.Message.Message.ID,
+			Text:      string(msg),
 		},
-		func(msg []byte) error {
-			_, err := b.EditMessageText(ctx, &bot.EditMessageTextParams{
-				ChatID:    chatID,
-				MessageID: update.CallbackQuery.Message.Message.ID,
-				Text:      string(msg),
-			})
-			if err != nil {
-				return fmt.Errorf("admin_login.handle %w", err)
-			}
-			return nil
-		},
-	)
+	}
+
+	return nil
 }

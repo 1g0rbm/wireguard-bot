@@ -3,71 +3,64 @@ package bothandlers
 import (
 	"bytes"
 	"context"
-	"log"
-	"log/slog"
+	"fmt"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 
 	"wireguard-bot/internal/services"
 	"wireguard-bot/internal/utils"
+	"wireguard-bot/internal/utils/dispatcher"
 )
 
 const qrCodeCommand = "QR-код \uE1D8"
 
 type QRCodeHandler struct {
+	dispatChan    chan<- dispatcher.Sendable
 	configService services.ConfigService
-	logger        *slog.Logger
 }
 
-func NewQRCodeHandler(configService services.ConfigService, logger *slog.Logger) *QRCodeHandler {
+func NewQRCodeHandler(d chan<- dispatcher.Sendable, s services.ConfigService) *QRCodeHandler {
 	return &QRCodeHandler{
-		configService: configService,
-		logger:        logger,
+		dispatChan:    d,
+		configService: s,
 	}
 }
 
 func (h *QRCodeHandler) Match(update *models.Update) bool {
+	if update.Message == nil {
+		return false
+	}
+
 	return update.Message.Text == qrCodeCommand
 }
 
-func (h *QRCodeHandler) Handle(ctx context.Context, b *bot.Bot, update *models.Update) {
+func (h *QRCodeHandler) Handle(ctx context.Context, update *models.Update) error {
 	qrBytes, err := h.configService.GenerateQR(ctx, update.Message.Chat.ID)
 	if err != nil {
-		msgBytes, errRender := utils.Render("static/messages/something_went_wrong.tmp", nil)
-		if errRender != nil {
-			h.logger.ErrorContext(ctx, "Render message error.", "error", errRender)
-		}
-		_, err = b.SendMessage(ctx, &bot.SendMessageParams{
+		return fmt.Errorf("handler_qr.handle.generate_qr %w", err)
+	}
+
+	msg, err := utils.Render("static/messages/sending_qr.tmp", nil)
+	if err != nil {
+		return fmt.Errorf("handler_qr.handle.sending_qr_render %w", err)
+	}
+	h.dispatChan <- dispatcher.TextMessage{
+		Params: &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   string(msgBytes),
-		})
-		if err != nil {
-			log.Fatalf("Sending message error.\nerr: %v\n", err)
-		}
+			Text:   string(msg),
+		},
 	}
 
-	msgBytes, errRender := utils.Render("static/messages/sending_qr.tmp", nil)
-	if errRender != nil {
-		h.logger.ErrorContext(ctx, "Render message error.", "error", errRender)
-	}
-	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   string(msgBytes),
-	})
-	if err != nil {
-		log.Fatalf("Sending message error.\nerr: %v \n", err)
+	h.dispatChan <- dispatcher.PhotoMessage{
+		Params: &bot.SendPhotoParams{
+			ChatID: update.Message.Chat.ID,
+			Photo: &models.InputFileUpload{
+				Filename: update.Message.Chat.Username + "_qr.png",
+				Data:     bytes.NewReader(qrBytes),
+			},
+		},
 	}
 
-	document := &models.InputFileUpload{
-		Filename: update.Message.Chat.Username + "_qr.png",
-		Data:     bytes.NewReader(qrBytes),
-	}
-	_, err = b.SendPhoto(ctx, &bot.SendPhotoParams{
-		ChatID: update.Message.Chat.ID,
-		Photo:  document,
-	})
-	if err != nil {
-		log.Fatalf("Sending message error.\nerr: %v \n", err)
-	}
+	return nil
 }

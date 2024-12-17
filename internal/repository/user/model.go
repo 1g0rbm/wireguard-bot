@@ -35,3 +35,7 @@ func (m Model) RoleIs(role int8) bool {
 func (m Model) StateIs(state string) bool {
 	return m.State == state
 }
+
+func (m Model) Enabled() bool {
+	return m.StateIs(EnabledState)
+}

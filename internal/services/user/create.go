@@ -18,10 +18,10 @@ func (u *ServiceUser) Create(
 	username,
 	firstName,
 	lastname string,
-) error {
+) (*user.Model, error) {
 	privateKey, publicKey, err := utils.GenerateKeyPair()
 	if err != nil {
-		return fmt.Errorf("[user_service.create] %w", err)
+		return nil, fmt.Errorf("[user_service.create] %w", err)
 	}
 
 	if serverID == 0 {
@@ -30,20 +30,20 @@ func (u *ServiceUser) Create(
 
 	ip, err := u.dhcp.Reserve()
 	if err != nil {
-		return fmt.Errorf("[user_service.create] %w", err)
+		return nil, fmt.Errorf("[user_service.create] %w", err)
+	}
+
+	userModel := &user.Model{
+		ID:         userID,
+		Username:   username,
+		FirstName:  firstName,
+		LastName:   lastname,
+		Role:       1,
+		PrivateKey: privateKey,
+		PublicKey:  publicKey,
 	}
 
 	err = u.txManager.ReadCommited(ctx, func(ctx context.Context) error {
-		userModel := &user.Model{
-			ID:         userID,
-			Username:   username,
-			FirstName:  firstName,
-			LastName:   lastname,
-			Role:       1,
-			PrivateKey: privateKey,
-			PublicKey:  publicKey,
-		}
-
 		if err := u.userRepo.CreateUser(ctx, userModel); err != nil {
 			return fmt.Errorf("[user_service.create] %w", err)
 		}
@@ -61,8 +61,8 @@ func (u *ServiceUser) Create(
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("[user_service.create] %w", err)
+		return nil, fmt.Errorf("[user_service.create] %w", err)
 	}
 
-	return nil
+	return userModel, nil
 }

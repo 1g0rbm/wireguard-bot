@@ -29,6 +29,7 @@ import (
 	sessionService "wireguard-bot/internal/services/session"
 	userService "wireguard-bot/internal/services/user"
 	"wireguard-bot/internal/utils/dhcp"
+	"wireguard-bot/internal/utils/dispatcher"
 	"wireguard-bot/internal/utils/msgs"
 )
 
@@ -56,6 +57,7 @@ type Container struct {
 	configHandler             *bothandlers.ConfigHandler
 	qrHandler                 *bothandlers.QRCodeHandler
 	adminLoginCallbackHandler *bothandlers.AdminLoginCallbackHandler
+	handlers                  []bothandlers.Handler
 
 	rootHandler       *serverhandlers.RootHandler
 	loginHandler      *serverhandlers.LoginHandler
@@ -74,10 +76,12 @@ type Container struct {
 	userService    services.UserService
 	sessionService services.SessionService
 
-	txtMsgChan chan *bot.SendMessageParams
+	txtMsgChan   chan *bot.SendMessageParams
+	tgDispatChan chan<- dispatcher.Sendable
 
-	dhcp *dhcp.DHCP
-	msgs *msgs.Sender
+	dhcp            *dhcp.DHCP
+	msgs            *msgs.Sender
+	tgMsgDispatcher *dispatcher.Dispatcher
 }
 
 func newContainer() *Container {
@@ -93,6 +97,19 @@ func (c *Container) Server() chi.Router {
 	}
 
 	return c.server
+}
+
+func (c *Container) BotHandlers() []bothandlers.Handler {
+	if c.handlers == nil {
+		c.handlers = []bothandlers.Handler{
+			c.StartHandler(),
+			c.QRCodeHandler(),
+			c.ConfigHandler(),
+			c.AdminLoginCallbackHandler(),
+		}
+	}
+
+	return c.handlers
 }
 
 func (c *Container) RootHandler() *serverhandlers.RootHandler {
@@ -308,7 +325,8 @@ func (c *Container) Bot() *bot.Bot {
 
 func (c *Container) AdminLoginCallbackHandler() *bothandlers.AdminLoginCallbackHandler {
 	if c.adminLoginCallbackHandler == nil {
-		c.adminLoginCallbackHandler = bothandlers.NewAdminLoginCallbackHandler(c.SessionService(), c.Logger())
+		_, ch := c.TgDispatcher()
+		c.adminLoginCallbackHandler = bothandlers.NewAdminLoginCallbackHandler(ch, c.SessionService())
 	}
 
 	return c.adminLoginCallbackHandler
@@ -316,7 +334,8 @@ func (c *Container) AdminLoginCallbackHandler() *bothandlers.AdminLoginCallbackH
 
 func (c *Container) StartHandler() *bothandlers.StartHandler {
 	if c.startHandler == nil {
-		c.startHandler = bothandlers.NewStartHandler(c.UserService(), c.Logger())
+		_, ch := c.TgDispatcher()
+		c.startHandler = bothandlers.NewStartHandler(ch, c.UserService())
 	}
 
 	return c.startHandler
@@ -324,7 +343,8 @@ func (c *Container) StartHandler() *bothandlers.StartHandler {
 
 func (c *Container) ConfigHandler() *bothandlers.ConfigHandler {
 	if c.configHandler == nil {
-		c.configHandler = bothandlers.NewConfigHandler(c.ConfigService(), c.Logger())
+		_, ch := c.TgDispatcher()
+		c.configHandler = bothandlers.NewConfigHandler(ch, c.ConfigService())
 	}
 
 	return c.configHandler
@@ -332,7 +352,8 @@ func (c *Container) ConfigHandler() *bothandlers.ConfigHandler {
 
 func (c *Container) QRCodeHandler() *bothandlers.QRCodeHandler {
 	if c.qrHandler == nil {
-		c.qrHandler = bothandlers.NewQRCodeHandler(c.ConfigService(), c.Logger())
+		_, ch := c.TgDispatcher()
+		c.qrHandler = bothandlers.NewQRCodeHandler(ch, c.ConfigService())
 	}
 
 	return c.qrHandler
@@ -340,7 +361,8 @@ func (c *Container) QRCodeHandler() *bothandlers.QRCodeHandler {
 
 func (c *Container) DefaultHandler() *bothandlers.DefaultHandler {
 	if c.defaultHandler == nil {
-		c.defaultHandler = bothandlers.NewDefaultHandler(c.AdminLoginCallbackHandler())
+		_, ch := c.TgDispatcher()
+		c.defaultHandler = bothandlers.NewDefaultHandler(ch, c.BotHandlers(), c.Logger())
 	}
 
 	return c.defaultHandler
@@ -389,4 +411,12 @@ func (c *Container) TxtMsgChan() chan *bot.SendMessageParams {
 	}
 
 	return c.txtMsgChan
+}
+
+func (c *Container) TgDispatcher() (dispatcher.Dispatcher, chan<- dispatcher.Sendable) {
+	if c.tgDispatChan == nil || c.tgMsgDispatcher == nil {
+		c.tgMsgDispatcher, c.tgDispatChan = dispatcher.NewDispatcher(c.Logger())
+	}
+
+	return *c.tgMsgDispatcher, c.tgDispatChan
 }
