@@ -7,8 +7,10 @@ import (
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 
+	bothandlers "wireguard-bot/internal/bot-handlers"
 	"wireguard-bot/internal/repository/user"
 	"wireguard-bot/internal/utils"
+	"wireguard-bot/internal/utils/dispatcher"
 )
 
 func (u *ServiceUser) Enable(ctx context.Context, userID int64) error {
@@ -30,10 +32,22 @@ func (u *ServiceUser) Enable(ctx context.Context, userID int64) error {
 		return fmt.Errorf("user_service.enable.message_render %w", err)
 	}
 
-	u.outTxtMsgChan <- &bot.SendMessageParams{
-		ChatID:    userModel.ID,
-		Text:      string(msg),
-		ParseMode: models.ParseModeMarkdown,
+	keyboard := &models.ReplyKeyboardMarkup{
+		Keyboard: [][]models.KeyboardButton{
+			{{Text: bothandlers.ConfigCommand}},
+			{{Text: bothandlers.QrCodeCommand}},
+		},
+		ResizeKeyboard:  true,
+		OneTimeKeyboard: false,
+	}
+
+	u.tgDispatChan <- dispatcher.TextMessage{
+		Params: &bot.SendMessageParams{
+			ChatID:      userModel.ID,
+			Text:        string(msg),
+			ParseMode:   models.ParseModeMarkdown,
+			ReplyMarkup: keyboard,
+		},
 	}
 
 	return nil

@@ -9,6 +9,7 @@ import (
 	"github.com/go-telegram/bot/models"
 
 	"wireguard-bot/internal/repository/user"
+	"wireguard-bot/internal/utils/dispatcher"
 )
 
 func (u *ServiceUser) LoginAdmin(ctx context.Context, username string) error {
@@ -21,13 +22,15 @@ func (u *ServiceUser) LoginAdmin(ctx context.Context, username string) error {
 		return fmt.Errorf("there is no user with username %s", username)
 	}
 
-	u.outTxtMsgChan <- &bot.SendMessageParams{
-		ChatID: usr.ID,
-		Text:   "Для логина в админку жмакай 👇",
-		ReplyMarkup: &models.InlineKeyboardMarkup{
-			InlineKeyboard: [][]models.InlineKeyboardButton{
-				{
-					{Text: "Login 🔑", CallbackData: "callback.admin_login"},
+	u.tgDispatChan <- dispatcher.TextMessage{
+		Params: &bot.SendMessageParams{
+			ChatID: usr.ID,
+			Text:   "Для логина в админку жмакай 👇",
+			ReplyMarkup: &models.InlineKeyboardMarkup{
+				InlineKeyboard: [][]models.InlineKeyboardButton{
+					{
+						{Text: "Login 🔑", CallbackData: "callback.admin_login"},
+					},
 				},
 			},
 		},

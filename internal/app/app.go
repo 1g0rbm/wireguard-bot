@@ -41,12 +41,6 @@ func (a *App) Start(ctx context.Context) {
 	go a.bot.Start(ctx)
 
 	go func() {
-		if err := a.container.MsgS().Run(ctx); err != nil {
-			log.Fatalf("Sending message error: %s", err)
-		}
-	}()
-
-	go func() {
 		dispatcher, _ := a.container.TgDispatcher()
 		dispatcher.Run(ctx, a.bot)
 	}()

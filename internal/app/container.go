@@ -30,7 +30,6 @@ import (
 	userService "wireguard-bot/internal/services/user"
 	"wireguard-bot/internal/utils/dhcp"
 	"wireguard-bot/internal/utils/dispatcher"
-	"wireguard-bot/internal/utils/msgs"
 )
 
 const (
@@ -76,11 +75,9 @@ type Container struct {
 	userService    services.UserService
 	sessionService services.SessionService
 
-	txtMsgChan   chan *bot.SendMessageParams
 	tgDispatChan chan<- dispatcher.Sendable
 
 	dhcp            *dhcp.DHCP
-	msgs            *msgs.Sender
 	tgMsgDispatcher *dispatcher.Dispatcher
 }
 
@@ -257,11 +254,12 @@ func (c *Container) ConfigService() services.ConfigService {
 
 func (c *Container) UserService() services.UserService {
 	if c.userService == nil {
+		_, ch := c.TgDispatcher()
 		c.userService = userService.NewServiceUser(
 			c.UserRepo(),
 			c.Users2ServersRepo(),
 			c.TxManager(), c.DHCP(),
-			c.TxtMsgChan(),
+			ch,
 		)
 	}
 
@@ -368,14 +366,6 @@ func (c *Container) DefaultHandler() *bothandlers.DefaultHandler {
 	return c.defaultHandler
 }
 
-func (c *Container) MsgS() *msgs.Sender {
-	if c.msgs == nil {
-		c.msgs = msgs.NewSender(c.Bot(), c.Logger(), c.TxtMsgChan())
-	}
-
-	return c.msgs
-}
-
 func (c *Container) DHCP() *dhcp.DHCP {
 	if c.dhcp == nil {
 		ctx := context.Background()
@@ -399,18 +389,6 @@ func (c *Container) DHCP() *dhcp.DHCP {
 	}
 
 	return c.dhcp
-}
-
-func (c *Container) TxtMsgChan() chan *bot.SendMessageParams {
-	if c.txtMsgChan == nil {
-		c.txtMsgChan = make(chan *bot.SendMessageParams)
-		c.getCloser().Add(func() error {
-			close(c.txtMsgChan)
-			return nil
-		})
-	}
-
-	return c.txtMsgChan
 }
 
 func (c *Container) TgDispatcher() (dispatcher.Dispatcher, chan<- dispatcher.Sendable) {

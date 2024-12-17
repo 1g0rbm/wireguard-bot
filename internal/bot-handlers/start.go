@@ -86,8 +86,8 @@ func (h *StartHandler) handleNewUser(update *models.Update) error {
 func (h *StartHandler) handleEnabledUser(update *models.Update) error {
 	keyboard := &models.ReplyKeyboardMarkup{
 		Keyboard: [][]models.KeyboardButton{
-			{{Text: configCommand}},
-			{{Text: qrCodeCommand}},
+			{{Text: ConfigCommand}},
+			{{Text: QrCodeCommand}},
 		},
 		ResizeKeyboard:  true,
 		OneTimeKeyboard: false,

@@ -1,11 +1,10 @@
 package user
 
 import (
-	"github.com/go-telegram/bot"
-
 	"wireguard-bot/internal/db"
 	"wireguard-bot/internal/repository"
 	"wireguard-bot/internal/utils/dhcp"
+	"wireguard-bot/internal/utils/dispatcher"
 )
 
 type ServiceUser struct {
@@ -13,7 +12,7 @@ type ServiceUser struct {
 	users2serversRepo repository.Users2Servers
 	txManager         db.TxManager
 	dhcp              *dhcp.DHCP
-	outTxtMsgChan     chan<- *bot.SendMessageParams
+	tgDispatChan      chan<- dispatcher.Sendable
 }
 
 func NewServiceUser(
@@ -21,13 +20,13 @@ func NewServiceUser(
 	users2serversRepo repository.Users2Servers,
 	txManager db.TxManager,
 	dhcp *dhcp.DHCP,
-	outTxtMsgChan chan<- *bot.SendMessageParams,
+	tgDispatChan chan<- dispatcher.Sendable,
 ) *ServiceUser {
 	return &ServiceUser{
 		userRepo:          userRepo,
 		users2serversRepo: users2serversRepo,
 		txManager:         txManager,
 		dhcp:              dhcp,
-		outTxtMsgChan:     outTxtMsgChan,
+		tgDispatChan:      tgDispatChan,
 	}
 }

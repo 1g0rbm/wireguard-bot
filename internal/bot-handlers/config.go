@@ -13,7 +13,7 @@ import (
 	"wireguard-bot/internal/utils/dispatcher"
 )
 
-const configCommand = "Конфиг </>"
+const ConfigCommand = "Конфиг </>"
 
 type ConfigHandler struct {
 	dispatChan    chan<- dispatcher.Sendable
@@ -32,7 +32,7 @@ func (h *ConfigHandler) Match(update *models.Update) bool {
 		return false
 	}
 
-	return update.Message.Text == configCommand
+	return update.Message.Text == ConfigCommand
 }
 
 func (h *ConfigHandler) Handle(ctx context.Context, update *models.Update) error {

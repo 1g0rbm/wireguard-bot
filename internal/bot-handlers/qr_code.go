@@ -13,7 +13,7 @@ import (
 	"wireguard-bot/internal/utils/dispatcher"
 )
 
-const qrCodeCommand = "QR-код \uE1D8"
+const QrCodeCommand = "QR-код \uE1D8"
 
 type QRCodeHandler struct {
 	dispatChan    chan<- dispatcher.Sendable
@@ -32,7 +32,7 @@ func (h *QRCodeHandler) Match(update *models.Update) bool {
 		return false
 	}
 
-	return update.Message.Text == qrCodeCommand
+	return update.Message.Text == QrCodeCommand
 }
 
 func (h *QRCodeHandler) Handle(ctx context.Context, update *models.Update) error {
