@@ -49,6 +49,7 @@ func (a *Auth) HandleFunc(next http.Handler) http.Handler {
 			return
 		}
 		if user == nil {
+			http.Redirect(w, r, serverhandlers.LoginPageURI, http.StatusFound)
 			a.logger.ErrorContext(r.Context(), "Authorization middleware error.", "err", err)
 			return
 		}

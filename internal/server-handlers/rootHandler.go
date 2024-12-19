@@ -3,9 +3,10 @@ package serverhandlers
 import (
 	"html/template"
 	"net/http"
-	"wireguard-bot/internal/utils/sessionctx"
 
 	"github.com/go-chi/chi/v5"
+
+	"wireguard-bot/internal/utils/sessionctx"
 )
 
 type RootHandler struct {
