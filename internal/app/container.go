@@ -151,7 +151,7 @@ func (c *Container) LoginHandler() *serverhandlers.LoginHandler {
 
 func (c *Container) AuthMiddleware() *middleaware.Auth {
 	if c.authMiddleware == nil {
-		c.authMiddleware = middleaware.NewAuth(c.SessionService())
+		c.authMiddleware = middleaware.NewAuth(c.UserService(), c.Logger())
 	}
 
 	return c.authMiddleware

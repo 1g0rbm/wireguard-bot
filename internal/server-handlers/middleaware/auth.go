@@ -1,23 +1,30 @@
 package middleaware
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/google/uuid"
 
 	serverhandlers "wireguard-bot/internal/server-handlers"
 	"wireguard-bot/internal/services"
+	"wireguard-bot/internal/utils/sessionctx"
 )
 
-const sessionCookieName = "session"
+const (
+	sessionCookieName  = "session"
+	contextUsernameKey = "username"
+)
 
 type Auth struct {
-	sessionService services.SessionService
+	userService services.UserService
+	logger      *slog.Logger
 }
 
-func NewAuth(sessionService services.SessionService) *Auth {
+func NewAuth(userService services.UserService, logger *slog.Logger) *Auth {
 	return &Auth{
-		sessionService: sessionService,
+		userService: userService,
+		logger:      logger,
 	}
 }
 
@@ -35,11 +42,17 @@ func (a *Auth) HandleFunc(next http.Handler) http.Handler {
 			return
 		}
 
-		if err := a.sessionService.Check(r.Context(), sessionID); err != nil {
+		user, err := a.userService.FindLoggedIn(r.Context(), sessionID)
+		if err != nil {
 			http.Redirect(w, r, serverhandlers.LoginPageURI, http.StatusFound)
+			a.logger.ErrorContext(r.Context(), "Authorization middleware error.", "err", err)
+			return
+		}
+		if user == nil {
+			a.logger.ErrorContext(r.Context(), "Authorization middleware error.", "err", err)
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(sessionctx.WithUsername(r.Context(), user.Username)))
 	})
 }

@@ -17,6 +17,7 @@ type ConfigService interface {
 type UserService interface {
 	Create(ctx context.Context, serverID int, userID int64, username, firstName, lastname string) (*user.Model, error)
 	Find(ctx context.Context, userID int64) (*user.Model, error)
+	FindLoggedIn(ctx context.Context, sessionID uuid.UUID) (*user.Model, error)
 	GetOrCreate(ctx context.Context, serverID int, userID int64, username, firstName, lastname string) (*user.Model, error)
 	LoginAdmin(ctx context.Context, username string) error
 	List(ctx context.Context, opts ...utils.FilterOption) ([]user.Model, error)
