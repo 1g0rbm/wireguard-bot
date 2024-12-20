@@ -30,6 +30,7 @@ import (
 	userService "wireguard-bot/internal/services/user"
 	"wireguard-bot/internal/utils/dhcp"
 	"wireguard-bot/internal/utils/dispatcher"
+	"wireguard-bot/internal/utils/notificator"
 )
 
 const (
@@ -79,6 +80,7 @@ type Container struct {
 
 	dhcp            *dhcp.DHCP
 	tgMsgDispatcher *dispatcher.Dispatcher
+	notificator     *notificator.Notificator
 }
 
 func newContainer() *Container {
@@ -333,7 +335,7 @@ func (c *Container) AdminLoginCallbackHandler() *bothandlers.AdminLoginCallbackH
 func (c *Container) StartHandler() *bothandlers.StartHandler {
 	if c.startHandler == nil {
 		_, ch := c.TgDispatcher()
-		c.startHandler = bothandlers.NewStartHandler(ch, c.UserService())
+		c.startHandler = bothandlers.NewStartHandler(ch, c.UserService(), c.Notificator())
 	}
 
 	return c.startHandler
@@ -397,4 +399,13 @@ func (c *Container) TgDispatcher() (dispatcher.Dispatcher, chan<- dispatcher.Sen
 	}
 
 	return *c.tgMsgDispatcher, c.tgDispatChan
+}
+
+func (c *Container) Notificator() *notificator.Notificator {
+	if c.notificator == nil {
+		_, ch := c.TgDispatcher()
+		c.notificator = notificator.NewNotificator(ch, c.UserRepo())
+	}
+
+	return c.notificator
 }

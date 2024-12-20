@@ -10,6 +10,7 @@ import (
 	"wireguard-bot/internal/services"
 	"wireguard-bot/internal/utils"
 	"wireguard-bot/internal/utils/dispatcher"
+	"wireguard-bot/internal/utils/notificator"
 )
 
 const startCommand = "/start"
@@ -17,12 +18,14 @@ const startCommand = "/start"
 type StartHandler struct {
 	dispatChan  chan<- dispatcher.Sendable
 	userService services.UserService
+	notificator *notificator.Notificator
 }
 
-func NewStartHandler(d chan<- dispatcher.Sendable, s services.UserService) *StartHandler {
+func NewStartHandler(d chan<- dispatcher.Sendable, s services.UserService, n *notificator.Notificator) *StartHandler {
 	return &StartHandler{
 		dispatChan:  d,
 		userService: s,
+		notificator: n,
 	}
 }
 
@@ -54,7 +57,7 @@ func (h *StartHandler) Handle(ctx context.Context, update *models.Update) error 
 	if userModel.Enabled() {
 		err = h.handleEnabledUser(update)
 	} else {
-		err = h.handleNewUser(update)
+		err = h.handleNewUser(ctx, update)
 	}
 
 	if err != nil {
@@ -64,7 +67,7 @@ func (h *StartHandler) Handle(ctx context.Context, update *models.Update) error 
 	return nil
 }
 
-func (h *StartHandler) handleNewUser(update *models.Update) error {
+func (h *StartHandler) handleNewUser(ctx context.Context, update *models.Update) error {
 	msg, err := utils.Render(
 		"static/messages/user_created.tmp",
 		map[string]string{"Username": update.Message.Chat.Username},
@@ -78,6 +81,10 @@ func (h *StartHandler) handleNewUser(update *models.Update) error {
 			Text:      string(msg),
 			ParseMode: models.ParseModeMarkdown,
 		},
+	}
+
+	if err := h.notificator.Notify(ctx, notificator.AdminEvent); err != nil {
+		return fmt.Errorf("handler_start.create_user.notify_admin %w", err)
 	}
 
 	return nil

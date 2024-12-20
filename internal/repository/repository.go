@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"wireguard-bot/internal/utils"
 
 	"github.com/google/uuid"
 
@@ -10,6 +9,7 @@ import (
 	"wireguard-bot/internal/repository/session"
 	"wireguard-bot/internal/repository/user"
 	"wireguard-bot/internal/repository/users2servers"
+	"wireguard-bot/internal/utils"
 )
 
 type SessionRepository interface {
@@ -22,6 +22,7 @@ type SessionRepository interface {
 
 type UserRepository interface {
 	GetUserByID(ctx context.Context, id int64) (*user.Model, error)
+	FindByRole(ctx context.Context, role int8) ([]user.Model, error)
 	FIndUserByActiveSessionID(ctx context.Context, ID uuid.UUID) (*user.Model, error)
 	GetUserByUsername(ctx context.Context, username string) (*user.Model, error)
 	CreateUser(ctx context.Context, user *user.Model) error

@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"wireguard-bot/internal/utils"
 
 	"github.com/Masterminds/squirrel"
 
 	"wireguard-bot/internal/db"
+	"wireguard-bot/internal/utils"
 )
 
 const table = "users"
@@ -155,6 +155,41 @@ func (r *Repository) List(ctx context.Context, filter utils.Filter) ([]Model, er
 
 	query := db.Query{
 		Name:     "user_repository.list",
+		QueryRaw: q,
+	}
+
+	var users []Model
+	if err = r.db.DB().SelectContext(ctx, &users, query, args...); err != nil {
+		return nil, fmt.Errorf("user_repository.list: %w", err)
+	}
+
+	return users, nil
+}
+
+func (r *Repository) FindByRole(ctx context.Context, role int8) ([]Model, error) {
+	q, args, err := squirrel.Select(
+		colPk,
+		colUsername,
+		colFirstname,
+		colLastname,
+		colRole,
+		colState,
+		colPublicKey,
+		colPrivateKey,
+		colCreatedAt,
+		colUpdatedAt,
+	).
+		PlaceholderFormat(squirrel.Dollar).
+		From(table).
+		Where(squirrel.Eq{colRole: role}).
+		ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("user_repository.find_by_role: %w", err)
+	}
+
+	query := db.Query{
+		Name:     "user_repository.find_by_role",
 		QueryRaw: q,
 	}
 
