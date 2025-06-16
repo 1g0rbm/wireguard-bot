@@ -10,6 +10,7 @@
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
           crossorigin="anonymous"
     >
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -27,7 +28,10 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#">Главная</a>
+                    <a class="nav-link" data-active-pattern="^/$" href="/">Главная</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-active-pattern="^/users|^/user/" href="/users">Пользователи</a>
                 </li>
             </ul>
         </div>
@@ -42,6 +46,7 @@
         crossorigin="anonymous"
 >
 </script>
+<script src="/static/js/admin.js"></script>
 </body>
 </html>
 {{ end }}

@@ -30,15 +30,19 @@
 <div class="row">
     <div class="col-12">
         <h3>Configuration</h3>
-<textarea id="configText" class="form-control" rows="5" readonly>
+<textarea id="configText" class="form-control config-textarea" rows="5" readonly>
 [Peer]
 #{{ .User.Username }}
 PublicKey = {{ .User.UserPublicKey }}
 AllowedIPs = {{ .User.UserAddress }}/32
 </textarea>
-        <form method="POST" action="/user/enable/{{ .User.UserID }}">
-            <button id="copyButton" class="btn btn-outline-primary mt-2">🗐</button>
-            <button type="submit" class="btn btn-outline-success mt-2">💩</button>
+        <form method="POST" onsubmit="return confirm('Активируем?')" action="/user/enable/{{ .User.UserID }}">
+            <button id="copyButton" type="button" class="btn btn-outline-secondary mt-2">
+               Скопировать конфиг📋
+            </button>
+            <button id="submitButton" type="submit" class="btn btn-outline-success mt-2">
+                Активировать 💩
+            </button>
         </form>
     </div>
 </div>
@@ -47,9 +51,9 @@ AllowedIPs = {{ .User.UserAddress }}/32
     document.getElementById('copyButton').addEventListener('click', function() {
         var configText = document.getElementById('configText');
         configText.select();
-        configText.setSelectionRange(0, 99999); // For mobile devices
+        configText.setSelectionRange(0, 99999);
         document.execCommand('copy');
-        alert('Configuration copied to clipboard!');
+        alert('Конфиг в буффере омбэна.');
     });
 </script>
 {{ end }}

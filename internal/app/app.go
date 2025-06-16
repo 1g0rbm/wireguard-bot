@@ -63,6 +63,8 @@ func (a *App) Start(ctx context.Context) {
 func (a *App) initServerHandlers() {
 	a.server.Group(func(r chi.Router) {
 		r.Use(a.container.AuthMiddleware().HandleFunc)
+		fs := http.FileServer(http.Dir("static"))
+		r.Handle("/static/*", http.StripPrefix("/static/", fs))
 		a.container.RootHandler().Register(r)
 		a.container.UsersListHandler().Register(r)
 		a.container.UserPageHandler().Register(r)
