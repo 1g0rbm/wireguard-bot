@@ -10,6 +10,7 @@ import (
 
 	"wireguard-bot/internal/repository"
 	"wireguard-bot/internal/repository/users2servers"
+	"wireguard-bot/internal/utils/flash"
 )
 
 type UserPageHandler struct {
@@ -18,7 +19,8 @@ type UserPageHandler struct {
 }
 
 type userPageData struct {
-	User *users2servers.UsersServers
+	User  *users2servers.UsersServers
+	Flash string
 }
 
 func NewUserPageHandler(users2serversRepo repository.Users2Servers, logger *slog.Logger) *UserPageHandler {
@@ -44,9 +46,9 @@ func (h *UserPageHandler) handle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid user_id", http.StatusBadRequest)
 		return
 	}
-
 	pageData := userPageData{
-		User: fullInfo,
+		User:  fullInfo,
+		Flash: flash.GetFlash(w, r, "user-enable-flash"),
 	}
 
 	tmp, err := template.ParseFiles("static/templates/base.html", "static/templates/user_page.html")

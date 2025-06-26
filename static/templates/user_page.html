@@ -2,6 +2,16 @@
 
 {{ define "content" }}
 <div class="row">
+    {{ if eq .Flash "success" }}
+        <div class="alert alert-success">
+            Усер активирован.
+        </div>
+    {{ else if eq .Flash "error" }}
+        <div class="alert alert-danger">
+            Усер не активирован.
+            Обратитесь к компетентному человеку для устранения проблемы.
+        </div>
+    {{ end }}
     <div class="col-md-6">
         <h3>User Information</h3>
         <ul>
