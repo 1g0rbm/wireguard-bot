@@ -1,5 +1,7 @@
 [tools]
 go = "1.26.2"
+"go:github.com/golangci/golangci-lint/cmd/golangci-lint" = "1.64.8"
+"go:github.com/pressly/goose/v3/cmd/goose" = "3.14.0"
 
 [tasks.update-modules]
 description = "Update Go modules"
@@ -44,10 +46,6 @@ go build -o "${usage_build_name?}" ./cmd/bot.go
 description = "Run go generate for services"
 run = "go generate ./internal/services/..."
 
-[tasks.docs-generate]
-description = "Generate swagger docs"
-run = 'go run github.com/swaggo/swag/cmd/swag@v1.16.6 init -g cmd/bot.go'
-
 [tasks.migration-status]
 description = "Show migration status"
 run = '''
@@ -58,7 +56,7 @@ if [ -f .env ]; then
 fi
 LOCAL_MIGRATION_DIR="${MIGRATION_DIR}"
 LOCAL_MIGRATION_DSN="host=localhost port=${PG_PORT} dbname=${PG_DATABASE_NAME} user=${PG_USER} password=${PG_PASSWORD} sslmode=disable"
-go run github.com/pressly/goose/v3/cmd/goose@v3.14.0 -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" status -v
+goose -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" status -v
 '''
 
 [tasks.migration-up]
@@ -71,7 +69,7 @@ if [ -f .env ]; then
 fi
 LOCAL_MIGRATION_DIR="${MIGRATION_DIR}"
 LOCAL_MIGRATION_DSN="host=localhost port=${PG_PORT} dbname=${PG_DATABASE_NAME} user=${PG_USER} password=${PG_PASSWORD} sslmode=disable"
-go run github.com/pressly/goose/v3/cmd/goose@v3.14.0 -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" up -v
+goose -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" up -v
 '''
 
 [tasks.migration-down]
@@ -84,7 +82,7 @@ if [ -f .env ]; then
 fi
 LOCAL_MIGRATION_DIR="${MIGRATION_DIR}"
 LOCAL_MIGRATION_DSN="host=localhost port=${PG_PORT} dbname=${PG_DATABASE_NAME} user=${PG_USER} password=${PG_PASSWORD} sslmode=disable"
-go run github.com/pressly/goose/v3/cmd/goose@v3.14.0 -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" down -v
+goose -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" down -v
 '''
 
 [tasks.migration-create]
@@ -98,12 +96,12 @@ if [ -f .env ]; then
 fi
 LOCAL_MIGRATION_DIR="${MIGRATION_DIR}"
 LOCAL_MIGRATION_DSN="host=localhost port=${PG_PORT} dbname=${PG_DATABASE_NAME} user=${PG_USER} password=${PG_PASSWORD} sslmode=disable"
-go run github.com/pressly/goose/v3/cmd/goose@v3.14.0 -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" create "${usage_migration_name?}" sql
+goose -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" create "${usage_migration_name?}" sql
 '''
 
 [tasks.lint]
 description = "Run golangci-lint"
-run = 'go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8 run ./... --config .golangci.pipeline.yaml'
+run = "golangci-lint run ./... --config .golangci.pipeline.yaml"
 
 [tasks.test]
 description = "Run project tests"
