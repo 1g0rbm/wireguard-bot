@@ -30,9 +30,6 @@ jobs:
       - name: Install tools
         run: mise install
 
-      - name: Install dependencies
-        run: mise run install-deps
-
       - name: Run linter
         run: mise run lint
 

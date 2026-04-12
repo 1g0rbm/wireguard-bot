@@ -1,27 +1,20 @@
 [tools]
 go = "1.26.2"
 
-[vars]
-local_bin = "{{config_root}}/bin"
-
-[tasks.install-deps]
-description = "Install local binaries into ./bin"
-run = '''
-mkdir -p "{{vars.local_bin}}"
-GOBIN="{{vars.local_bin}}" go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-GOBIN="{{vars.local_bin}}" go install github.com/gojuno/minimock/v3/cmd/minimock@latest
-GOBIN="{{vars.local_bin}}" go install github.com/joho/godotenv/cmd/godotenv@latest
-GOBIN="{{vars.local_bin}}" go install github.com/pressly/goose/v3/cmd/goose@v3.14.0
-GOBIN="{{vars.local_bin}}" go install github.com/swaggo/swag/cmd/swag@latest
-'''
-
 [tasks.update-modules]
 description = "Update Go modules"
 run = 'GOPRIVATE="${GOPRIVATE:-}" go mod tidy'
 
 [tasks.run-bot]
 description = "Run bot with values from .env"
-run = '"{{vars.local_bin}}/godotenv" -f .env go run ./cmd/bot.go'
+run = '''
+if [ -f .env ]; then
+  set -a
+  . ./.env
+  set +a
+fi
+go run ./cmd/bot.go
+'''
 
 [tasks.run-infra]
 description = "Run infrastructure in docker compose"
@@ -38,7 +31,14 @@ run = "docker compose down --remove-orphans"
 [tasks.build]
 description = "Build bot binary"
 usage = 'arg "<build_name>" help="Output binary name"'
-run = '"{{vars.local_bin}}/godotenv" -f .env go build -o "${usage_build_name?}" ./cmd/bot.go'
+run = '''
+if [ -f .env ]; then
+  set -a
+  . ./.env
+  set +a
+fi
+go build -o "${usage_build_name?}" ./cmd/bot.go
+'''
 
 [tasks.mock-generate]
 description = "Run go generate for services"
@@ -46,7 +46,7 @@ run = "go generate ./internal/services/..."
 
 [tasks.docs-generate]
 description = "Generate swagger docs"
-run = '"{{vars.local_bin}}/swag" init -g cmd/bot.go'
+run = 'go run github.com/swaggo/swag/cmd/swag@v1.16.6 init -g cmd/bot.go'
 
 [tasks.migration-status]
 description = "Show migration status"
@@ -58,7 +58,7 @@ if [ -f .env ]; then
 fi
 LOCAL_MIGRATION_DIR="${MIGRATION_DIR}"
 LOCAL_MIGRATION_DSN="host=localhost port=${PG_PORT} dbname=${PG_DATABASE_NAME} user=${PG_USER} password=${PG_PASSWORD} sslmode=disable"
-"{{vars.local_bin}}/goose" -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" status -v
+go run github.com/pressly/goose/v3/cmd/goose@v3.14.0 -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" status -v
 '''
 
 [tasks.migration-up]
@@ -71,7 +71,7 @@ if [ -f .env ]; then
 fi
 LOCAL_MIGRATION_DIR="${MIGRATION_DIR}"
 LOCAL_MIGRATION_DSN="host=localhost port=${PG_PORT} dbname=${PG_DATABASE_NAME} user=${PG_USER} password=${PG_PASSWORD} sslmode=disable"
-"{{vars.local_bin}}/goose" -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" up -v
+go run github.com/pressly/goose/v3/cmd/goose@v3.14.0 -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" up -v
 '''
 
 [tasks.migration-down]
@@ -84,7 +84,7 @@ if [ -f .env ]; then
 fi
 LOCAL_MIGRATION_DIR="${MIGRATION_DIR}"
 LOCAL_MIGRATION_DSN="host=localhost port=${PG_PORT} dbname=${PG_DATABASE_NAME} user=${PG_USER} password=${PG_PASSWORD} sslmode=disable"
-"{{vars.local_bin}}/goose" -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" down -v
+go run github.com/pressly/goose/v3/cmd/goose@v3.14.0 -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" down -v
 '''
 
 [tasks.migration-create]
@@ -98,12 +98,12 @@ if [ -f .env ]; then
 fi
 LOCAL_MIGRATION_DIR="${MIGRATION_DIR}"
 LOCAL_MIGRATION_DSN="host=localhost port=${PG_PORT} dbname=${PG_DATABASE_NAME} user=${PG_USER} password=${PG_PASSWORD} sslmode=disable"
-"{{vars.local_bin}}/goose" -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" create "${usage_migration_name?}" sql
+go run github.com/pressly/goose/v3/cmd/goose@v3.14.0 -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" create "${usage_migration_name?}" sql
 '''
 
 [tasks.lint]
 description = "Run golangci-lint"
-run = '"{{vars.local_bin}}/golangci-lint" run ./... --config .golangci.pipeline.yaml'
+run = 'go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8 run ./... --config .golangci.pipeline.yaml'
 
 [tasks.test]
 description = "Run project tests"

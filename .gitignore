@@ -1,7 +1,6 @@
 .idea
 .vscode
 
-bin/*
 
 .env
 bot.log

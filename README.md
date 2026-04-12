@@ -13,10 +13,6 @@
 mise install
 ```
 ```sh
-# install binary deps
-mise run install-deps
-```
-```sh
 # создать .env, заменить значения на свои
 cp .env.example .env
 ``` 
