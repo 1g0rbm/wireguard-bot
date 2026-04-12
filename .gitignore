@@ -1,7 +1,8 @@
 .idea
 .vscode
 bin/
-
+.cursor
+.codex
 
 .env
 bot.log

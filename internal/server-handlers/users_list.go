@@ -45,9 +45,10 @@ func (h *UsersListHandler) handle(w http.ResponseWriter, r *http.Request) {
 	if pageData.UsernameFilter != "" {
 		opts = append(opts, userService.WithUsername(pageData.UsernameFilter))
 	}
-	if pageData.StateFilter == user.DisabledState {
+	switch pageData.StateFilter {
+	case user.DisabledState:
 		opts = append(opts, userService.WithDisabled())
-	} else if pageData.StateFilter == user.EnabledState {
+	case user.EnabledState:
 		opts = append(opts, userService.WithEnabled())
 	}
 

@@ -13,6 +13,7 @@ import (
 )
 
 const LoginPageURI = "/login"
+const maxLoginFormSize = 1024
 
 type LoginHandler struct {
 	userService    services.UserService
@@ -52,6 +53,13 @@ func (h *LoginHandler) handle(w http.ResponseWriter, r *http.Request) {
 
 func (h *LoginHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	var errs []string
+	r.Body = http.MaxBytesReader(w, r.Body, maxLoginFormSize)
+	if err := r.ParseForm(); err != nil {
+		h.logger.ErrorContext(r.Context(), "Login form parsing error.", "err", err)
+		http.Error(w, "Invalid form data.", http.StatusBadRequest)
+		return
+	}
+
 	username := r.FormValue("username")
 
 	sessID, err := h.sessionService.CheckByUsername(r.Context(), username)
