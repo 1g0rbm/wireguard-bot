@@ -3,14 +3,14 @@
 Бот для создания и управления аккаунтами VPN по протоколу wireguard.
 
 ### Requirements
-1. go v1.23
+1. [mise](https://mise.jdx.dev/)
 2. docker
 3. docker-compose
 
 ### Install
 ```sh
-# install binary deps
-make install-deps
+# install tools from mise.toml (Go and others)
+mise install
 ```
 ```sh
 # создать .env, заменить значения на свои
@@ -18,19 +18,19 @@ cp .env.example .env
 ``` 
 ```sh
 # install modules
-make update-modules
+mise run update-modules
 ```
 
 ### Run
 ```sh
 # запустить инфраструктуру(бд и пр.)
-make run-infra
+mise run run-infra
 ```
 ```sh
 # накатить миграции
-make migration-up
+mise run migration-up
 ```
 ```sh
 # запустить бот
-make run-bot
+mise run run-bot
 ```

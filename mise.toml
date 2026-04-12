@@ -1,0 +1,113 @@
+[tools]
+go = "1.26.2"
+"go:github.com/golangci/golangci-lint/cmd/golangci-lint" = "1.64.8"
+"go:github.com/pressly/goose/v3/cmd/goose" = "3.14.0"
+"go:codeberg.org/anaseto/goal/cmd/goal" = "1.5.0"
+"go:golang.org/x/tools/gopls" = "0.21.1"
+
+[tasks.update-modules]
+description = "Update Go modules"
+run = 'GOPRIVATE="${GOPRIVATE:-}" go mod tidy'
+
+[tasks.run-bot]
+description = "Run bot with values from .env"
+run = '''
+if [ -f .env ]; then
+  set -a
+  . ./.env
+  set +a
+fi
+go run ./cmd/bot.go
+'''
+
+[tasks.run-infra]
+description = "Run infrastructure in docker compose"
+run = "docker compose up -d --build"
+
+[tasks.stop-go]
+description = "Stop local bot started via go run"
+run = "pkill -f 'go run ./cmd/bot.go' || true"
+
+[tasks.stop-infra]
+description = "Stop infrastructure containers"
+run = "docker compose down --remove-orphans"
+
+[tasks.build]
+description = "Build bot binary"
+usage = 'arg "<build_name>" help="Output binary name"'
+run = '''
+if [ -f .env ]; then
+  set -a
+  . ./.env
+  set +a
+fi
+go build -o "${usage_build_name?}" ./cmd/bot.go
+'''
+
+[tasks.mock-generate]
+description = "Run go generate for services"
+run = "go generate ./internal/services/..."
+
+[tasks.migration-status]
+description = "Show migration status"
+run = '''
+if [ -f .env ]; then
+  set -a
+  . ./.env
+  set +a
+fi
+LOCAL_MIGRATION_DIR="${MIGRATION_DIR}"
+LOCAL_MIGRATION_DSN="host=localhost port=${PG_PORT} dbname=${PG_DATABASE_NAME} user=${PG_USER} password=${PG_PASSWORD} sslmode=disable"
+goose -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" status -v
+'''
+
+[tasks.migration-up]
+description = "Apply migrations"
+run = '''
+if [ -f .env ]; then
+  set -a
+  . ./.env
+  set +a
+fi
+LOCAL_MIGRATION_DIR="${MIGRATION_DIR}"
+LOCAL_MIGRATION_DSN="host=localhost port=${PG_PORT} dbname=${PG_DATABASE_NAME} user=${PG_USER} password=${PG_PASSWORD} sslmode=disable"
+goose -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" up -v
+'''
+
+[tasks.migration-down]
+description = "Rollback migration"
+run = '''
+if [ -f .env ]; then
+  set -a
+  . ./.env
+  set +a
+fi
+LOCAL_MIGRATION_DIR="${MIGRATION_DIR}"
+LOCAL_MIGRATION_DSN="host=localhost port=${PG_PORT} dbname=${PG_DATABASE_NAME} user=${PG_USER} password=${PG_PASSWORD} sslmode=disable"
+goose -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" down -v
+'''
+
+[tasks.migration-create]
+description = "Create sql migration file"
+usage = 'arg "<migration_name>" help="Migration name"'
+run = '''
+if [ -f .env ]; then
+  set -a
+  . ./.env
+  set +a
+fi
+LOCAL_MIGRATION_DIR="${MIGRATION_DIR}"
+LOCAL_MIGRATION_DSN="host=localhost port=${PG_PORT} dbname=${PG_DATABASE_NAME} user=${PG_USER} password=${PG_PASSWORD} sslmode=disable"
+goose -dir "${LOCAL_MIGRATION_DIR}" postgres "${LOCAL_MIGRATION_DSN}" create "${usage_migration_name?}" sql
+'''
+
+[tasks.lint]
+description = "Run golangci-lint"
+run = "golangci-lint run ./... --config .golangci.pipeline.yaml"
+
+[tasks.test]
+description = "Run project tests"
+run = '''
+go clean -testcache
+go test ./...
+'''

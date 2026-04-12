@@ -1,6 +1,6 @@
 module wireguard-bot
 
-go 1.23
+go 1.26
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
