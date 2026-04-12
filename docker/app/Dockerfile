@@ -1,5 +1,5 @@
 # Первый этап - сборка
-FROM golang:1.23 AS builder
+FROM golang:1.26.2 AS builder
 
 WORKDIR /app
 
